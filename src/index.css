@@ -1,0 +1,56 @@
+@import url('https://fonts.googleapis.com/css2?family=Lexend:wght@300;400;500;600;700&display=swap');
+@import url('https://fonts.googleapis.com/icon?family=Material+Icons');
+@import url('https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&display=swap');
+
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  body {
+    @apply font-display text-slate-900 bg-background-light dark:bg-background-dark dark:text-slate-100;
+  }
+}
+
+.geometric-bg {
+  background-color: #f6f6f8;
+  background-image: radial-gradient(#135bec 0.5px, transparent 0.5px), radial-gradient(#135bec 0.5px, #f6f6f8 0.5px);
+  background-size: 20px 20px;
+  background-position: 0 0, 10px 10px;
+  opacity: 0.1;
+}
+
+.dark .geometric-bg {
+  background-color: #101622;
+  background-image: radial-gradient(#135bec 0.5px, transparent 0.5px), radial-gradient(#135bec 0.5px, #101622 0.5px);
+  opacity: 0.05;
+}
+
+.scanning-line {
+  height: 2px;
+  background: #135bec;
+  position: absolute;
+  width: 100%;
+  top: 0;
+  animation: scan 3s linear infinite;
+  box-shadow: 0 0 15px #135bec;
+}
+
+@keyframes scan {
+  0% {
+    top: 0;
+  }
+
+  50% {
+    top: 100%;
+  }
+
+  100% {
+    top: 0;
+  }
+}
+
+.face-guide {
+  border: 4px solid rgba(19, 91, 236, 0.4);
+  border-radius: 50% 50% 45% 45% / 60% 60% 40% 40%;
+}
