@@ -70,12 +70,12 @@ const DashboardTab: React.FC<DashboardTabProps> = ({ logs, occupancy }) => {
     return (
         <motion.div initial="hidden" animate="visible" variants={containerVariants} className="space-y-10 pb-10">
             {/* Header */}
-            <div className="flex flex-col md:flex-row md:items-end justify-between gap-4">
+            <div className="flex flex-col sm:flex-row sm:items-end justify-between gap-4">
                 <div>
-                    <h1 className="text-4xl font-black text-slate-800 dark:text-white tracking-tighter">Panel de Control</h1>
-                    <p className="text-slate-500 font-medium italic mt-1">Análisis inteligente del rendimiento institucional</p>
+                    <h1 className="text-2xl sm:text-4xl font-black text-slate-800 dark:text-white tracking-tighter">Panel de Control</h1>
+                    <p className="text-xs sm:text-slate-500 font-medium italic mt-1">Análisis inteligente del rendimiento institucional</p>
                 </div>
-                <div className="px-5 py-2 bg-indigo-50 dark:bg-indigo-500/10 rounded-2xl border border-indigo-100 dark:border-indigo-500/20">
+                <div className="hidden xs:block px-5 py-2 bg-indigo-50 dark:bg-indigo-500/10 rounded-2xl border border-indigo-100 dark:border-indigo-500/20 max-w-fit">
                     <span className="text-[10px] font-black text-indigo-600 dark:text-indigo-400 uppercase tracking-widest">Estado del Sistema</span>
                     <div className="flex items-center gap-2">
                         <span className="w-2 h-2 rounded-full bg-green-500 animate-pulse"></span>
@@ -93,21 +93,21 @@ const DashboardTab: React.FC<DashboardTabProps> = ({ logs, occupancy }) => {
             </div>
 
             {/* Charts Section */}
-            <div className="grid grid-cols-1 xl:grid-cols-12 gap-8">
-                <div className="xl:col-span-8 bg-white dark:bg-slate-900 rounded-[3rem] p-10 border border-slate-100 dark:border-slate-800 shadow-xl relative overflow-hidden">
-                    <div className="flex flex-col md:flex-row md:items-center justify-between gap-6 mb-10">
-                        <h3 className="text-2xl font-black text-slate-800 dark:text-white flex items-center gap-3">
+            <div className="grid grid-cols-1 xl:grid-cols-12 gap-6 sm:gap-8">
+                <div className="xl:col-span-8 bg-white dark:bg-slate-900 rounded-3xl sm:rounded-[3rem] p-6 sm:p-10 border border-slate-100 dark:border-slate-800 shadow-xl relative overflow-hidden">
+                    <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 sm:gap-6 mb-6 sm:mb-10">
+                        <h3 className="text-xl sm:text-2xl font-black text-slate-800 dark:text-white flex items-center gap-3">
                             <span className="material-icons-outlined text-indigo-500">show_chart</span>Tendencia
                         </h3>
                     </div>
-                    <div ref={areaRef}><AttendanceChart data={stats?.daily || []} width={areaWidth} loading={loading} /></div>
+                    <div ref={areaRef} className="h-64 sm:h-auto"><AttendanceChart data={stats?.daily || []} width={areaWidth} loading={loading} /></div>
                 </div>
 
-                <div className="xl:col-span-4 bg-white dark:bg-slate-900 rounded-[3rem] p-10 border border-slate-100 dark:border-slate-800 shadow-xl">
-                    <h3 className="text-2xl font-black text-slate-800 dark:text-white flex items-center gap-3 mb-10">
+                <div className="xl:col-span-4 bg-white dark:bg-slate-900 rounded-3xl sm:rounded-[3rem] p-6 sm:p-10 border border-slate-100 dark:border-slate-800 shadow-xl">
+                    <h3 className="text-xl sm:text-2xl font-black text-slate-800 dark:text-white flex items-center gap-3 mb-6 sm:mb-10">
                         <span className="material-icons-outlined text-green-500">bar_chart</span>Por Grado
                     </h3>
-                    <div ref={barRef}><GradeBarChart data={stats?.grades || []} width={barWidth} loading={loading} /></div>
+                    <div ref={barRef} className="h-64 sm:h-auto"><GradeBarChart data={stats?.grades || []} width={barWidth} loading={loading} /></div>
                 </div>
             </div>
 

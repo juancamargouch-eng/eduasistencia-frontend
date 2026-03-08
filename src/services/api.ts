@@ -2,6 +2,8 @@ import axios from 'axios';
 
 export interface Student {
     id: number;
+    first_name: string;
+    last_name: string;
     full_name: string;
     grade: string;
     section: string;
@@ -16,6 +18,7 @@ export interface Student {
         id: number;
         name: string;
         start_time: string;
+        end_time: string;
     } | null;
 }
 
@@ -43,6 +46,7 @@ export interface ScheduleData {
     name: string;
     slug: string;
     start_time: string;
+    end_time: string;
     tolerance_minutes?: number;
     late_limit_minutes?: number;
 }
@@ -73,6 +77,23 @@ export interface ReportFilters {
 
 const API_URL = import.meta.env.VITE_API_BASE_URL;
 export const BASE_URL = API_URL ? API_URL.replace('/api', '') : '';
+
+export const getStudentPhotoUrl = (photoUrl?: string) => {
+    if (!photoUrl) return null;
+
+    // Si ya es una URL completa (http)
+    if (photoUrl.startsWith('http')) {
+        return photoUrl;
+    }
+
+    // Asegurar que BASE_URL no termine en / y que photoUrl empiece con /
+    const cleanBase = BASE_URL.endsWith('/') ? BASE_URL.slice(0, -1) : BASE_URL;
+    const cleanPath = photoUrl.startsWith('/') ? photoUrl : `/${photoUrl}`;
+
+    const finalUrl = `${cleanBase}${cleanPath}`;
+    // console.log('DEBUG PHOTO URL:', finalUrl); // Descomentar para depurar en consola del navegador
+    return finalUrl;
+};
 
 if (!API_URL) {
     console.warn("VITE_API_BASE_URL no está definida en el archivo .env");
@@ -114,7 +135,7 @@ export const login = async (username: string, password: string) => {
     const response = await api.post('/auth/token', formData, {
         headers: { 'Content-Type': 'application/x-www-form-urlencoded' }
     });
-    return response.data;
+    return response.data; // Incluye access_token, token_type e is_superuser
 };
 
 export const getStudents = async () => {
@@ -178,21 +199,10 @@ export const exportAttendanceReport = async (filters: ReportFilters) => {
     return response.data;
 };
 
-// Student Update
-interface StudentUpdate {
-    full_name?: string;
-    grade?: string;
-    section?: string;
-    is_active?: boolean;
-    dni?: string;
-    schedule_id?: number | null;
-    telegram_chat_id?: string | null;
-    telegram_user_id?: string | null;
-    notify_telegram?: boolean;
-}
+// Student Update Interface removed to use FormData directly
 
-export const updateStudent = async (id: number, data: StudentUpdate) => {
-    const response = await api.put(`/students/${id}`, data);
+export const updateStudent = async (id: number, formData: FormData) => {
+    const response = await api.put(`/students/${id}`, formData);
     return response.data;
 };
 
@@ -205,6 +215,39 @@ export const importStudents = async (file: File) => {
     const formData = new FormData();
     formData.append('file', file);
     const response = await api.post('/students/import', formData, {
+        headers: {
+            'Content-Type': 'multipart/form-data',
+        },
+    });
+    return response.data;
+};
+
+export const enrollByDni = async (dni: string, file: File, faceDescriptor: string) => {
+    const formData = new FormData();
+    formData.append('dni', dni);
+    formData.append('file', file);
+    formData.append('face_descriptor', faceDescriptor);
+
+    const response = await api.patch('/students/enroll-by-dni', formData, {
+        headers: {
+            'Content-Type': 'multipart/form-data',
+        },
+    });
+    return response.data;
+};
+
+export const checkPhotos = async (dnis: string[]) => {
+    const response = await api.post('/students/check-photos', dnis);
+    return response.data as { dni: string, photo_url: string, s3_key: string }[];
+};
+
+export const enrollByS3Key = async (dni: string, s3Key: string, faceDescriptor: string) => {
+    const formData = new FormData();
+    formData.append('dni', dni);
+    formData.append('s3_key', s3Key);
+    formData.append('face_descriptor', faceDescriptor);
+
+    const response = await api.post('/students/enroll-by-s3-key', formData, {
         headers: {
             'Content-Type': 'multipart/form-data',
         },
@@ -239,9 +282,9 @@ export const getOccupancyStats = async () => {
     return response.data;
 };
 
-export const getDailyAttendance = async (grade: string, section: string, date?: string) => {
+export const getDailyAttendance = async (grade: string, section: string, date?: string, scheduleId?: number) => {
     const response = await api.get('/attendance/daily-status', {
-        params: { grade, section, date_str: date }
+        params: { grade, section, date_str: date, schedule_id: scheduleId }
     });
     return response.data;
 };

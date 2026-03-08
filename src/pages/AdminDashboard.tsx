@@ -3,6 +3,7 @@ import React from 'react';
 // Hooks & Layout
 import AdminLayout from '../components/admin/AdminLayout';
 import { useAdminDashboard } from '../hooks/useAdminDashboard';
+import { useAuth } from '../context/AuthContext';
 
 // Tabs & Modals
 import DashboardTab from '../components/admin/DashboardTab';
@@ -15,9 +16,11 @@ import SettingsTabContent from '../components/admin/SettingsTabContent';
 import TelegramTab from '../components/admin/TelegramTab';
 import StudentDetailsModal from '../components/StudentDetailsModal';
 import ImportStudentsModal from '../components/ImportStudentsModal';
+import BulkPhotoEnrollment from '../components/admin/BulkPhotoEnrollment';
 import JustificationModal from '../components/JustificationModal';
 
 const AdminDashboard: React.FC = () => {
+    const { isSuperuser } = useAuth();
     const {
         webcamRef, loading, modelsLoaded, faceDetected,
         students, schedules, justifications, logs, occupancy,
@@ -26,10 +29,17 @@ const AdminDashboard: React.FC = () => {
         activeTab, dailyData, setDailyData, reportFilters, setReportFilters,
         justifState, setJustifState, schForm, setSchForm, studentFilters, setStudentFilters,
         selectedStudent, setSelectedStudent, showImportModal, setShowImportModal,
-        refreshAnalytics, fetchData, handleSubmitRegister
+        refreshAnalytics, fetchData, handleSubmitRegister,
+        editingScheduleId, setEditingScheduleId, handleEditSchedule, handleSubmitSchedule,
+        handleExportReport
     } = useAdminDashboard();
 
-    const grades = ["1ro Primaria", "2do Primaria", "3er Primaria", "4to Primaria", "5to Primaria", "6to Primaria", "1ro Secundaria", "2do Secundaria", "3er Secundaria", "4to Secundaria", "5to Secundaria"];
+    const [showBulkPhotoModal, setShowBulkPhotoModal] = React.useState(false);
+
+    const grades = [
+        "1 PRIMARIA", "2 PRIMARIA", "3 PRIMARIA", "4 PRIMARIA", "5 PRIMARIA", "6 PRIMARIA",
+        "1 SECUNDARIA", "2 SECUNDARIA", "3 SECUNDARIA", "4 SECUNDARIA", "5 SECUNDARIA"
+    ];
     const sections = ["A", "B", "C", "D", "E"];
 
     return (
@@ -39,7 +49,8 @@ const AdminDashboard: React.FC = () => {
             {activeTab === 'registration' && (
                 <RegistrationTab
                     {...regForm}
-                    setFullName={val => setRegForm(p => ({ ...p, fullName: val }))}
+                    setFirstName={val => setRegForm(p => ({ ...p, firstName: val }))}
+                    setLastName={val => setRegForm(p => ({ ...p, lastName: val }))}
                     setDni={val => setRegForm(p => ({ ...p, dni: val }))}
                     setGrade={val => setRegForm(p => ({ ...p, grade: val }))}
                     setSection={val => setRegForm(p => ({ ...p, section: val }))}
@@ -60,7 +71,10 @@ const AdminDashboard: React.FC = () => {
                 <StudentsTab
                     students={students} filterGrade={studentFilters.grade} setFilterGrade={g => setStudentFilters(p => ({ ...p, grade: g }))}
                     filterSection={studentFilters.section} setFilterSection={s => setStudentFilters(p => ({ ...p, section: s }))}
-                    grades={grades} sections={sections} onImport={() => setShowImportModal(true)} onSelectStudent={setSelectedStudent}
+                    grades={grades} sections={sections}
+                    onImport={() => setShowImportModal(true)}
+                    onBulkPhotoEnroll={() => setShowBulkPhotoModal(true)}
+                    onSelectStudent={setSelectedStudent}
                 />
             )}
 
@@ -68,8 +82,10 @@ const AdminDashboard: React.FC = () => {
                 <DailyAttendanceTab
                     dailyGrade={dailyData.grade} setDailyGrade={g => setDailyData(p => ({ ...p, grade: g }))}
                     dailySection={dailyData.section} setDailySection={s => setDailyData(p => ({ ...p, section: s }))}
+                    dailyScheduleId={dailyData.scheduleId} setDailyScheduleId={id => setDailyData(p => ({ ...p, scheduleId: id }))}
                     dailyDate={dailyData.date} setDailyDate={d => setDailyData(p => ({ ...p, date: d }))}
-                    dailyStats={dailyData.stats} dailyLoading={dailyData.loading} grades={grades} sections={sections}
+                    dailyStats={dailyData.stats} dailyLoading={dailyData.loading}
+                    grades={grades} sections={sections} schedules={schedules}
                 />
             )}
 
@@ -79,7 +95,7 @@ const AdminDashboard: React.FC = () => {
                     reportDateTo={reportFilters.to} setReportDateTo={t => setReportFilters(p => ({ ...p, to: t }))}
                     reportGrade={reportFilters.grade} setReportGrade={g => setReportFilters(p => ({ ...p, grade: g }))}
                     reportSection={reportFilters.section} setReportSection={s => setReportFilters(p => ({ ...p, section: s }))}
-                    grades={grades} sections={sections} onExport={() => { }}
+                    grades={grades} sections={sections} onExport={handleExportReport}
                 />
             )}
 
@@ -92,21 +108,50 @@ const AdminDashboard: React.FC = () => {
                 />
             )}
 
-            {activeTab === 'settings' && (
-                <SettingsTabContent
-                    newScheduleName={schForm.name} setNewScheduleName={n => setSchForm(p => ({ ...p, name: n }))}
-                    newScheduleStart={schForm.start} setNewScheduleStart={s => setSchForm(p => ({ ...p, start: s }))}
-                    newScheduleTolerance={schForm.tolerance} setNewScheduleTolerance={t => setSchForm(p => ({ ...p, tolerance: t }))}
-                    schedules={schedules} onCreateSchedule={() => { }}
-                />
+            {/* Pestañas restringidas a Superusuarios */}
+            {isSuperuser && (
+                <>
+                    {activeTab === 'settings' && (
+                        <SettingsTabContent
+                            newScheduleName={schForm.name} setNewScheduleName={n => setSchForm(p => ({ ...p, name: n }))}
+                            newScheduleStart={schForm.start} setNewScheduleStart={s => setSchForm(p => ({ ...p, start: s }))}
+                            newScheduleEnd={schForm.end} setNewScheduleEnd={e => setSchForm(p => ({ ...p, end: e }))}
+                            newScheduleTolerance={schForm.tolerance} setNewScheduleTolerance={t => setSchForm(p => ({ ...p, tolerance: t }))}
+                            schedules={schedules}
+                            onCreateSchedule={handleSubmitSchedule}
+                            editingScheduleId={editingScheduleId}
+                            onEditSchedule={handleEditSchedule}
+                            onCancelEdit={() => {
+                                setEditingScheduleId(null);
+                                setSchForm({ name: '', start: '', end: '', tolerance: '0' });
+                            }}
+                        />
+                    )}
+                    {activeTab === 'telegram' && <TelegramTab />}
+                </>
             )}
 
+            {/* Modales globales */}
             {selectedStudent && <StudentDetailsModal student={selectedStudent} onClose={() => setSelectedStudent(null)} onUpdate={fetchData} />}
             {showImportModal && <ImportStudentsModal onClose={() => setShowImportModal(false)} onImportSuccess={fetchData} />}
+
+            {showBulkPhotoModal && (
+                <div className="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center z-50 p-4">
+                    <div className="max-w-2xl w-full relative">
+                        <button
+                            onClick={() => setShowBulkPhotoModal(false)}
+                            className="absolute -top-12 right-0 text-white/70 hover:text-white flex items-center gap-2 font-bold uppercase tracking-widest text-xs"
+                        >
+                            Cerrar <span className="material-icons">close</span>
+                        </button>
+                        <BulkPhotoEnrollment onComplete={fetchData} />
+                    </div>
+                </div>
+            )}
+
             {justifState.showModal && justifState.studentData && justifState.selectedAbsence && (
                 <JustificationModal student={justifState.studentData} absenceDate={justifState.selectedAbsence} onClose={() => setJustifState(p => ({ ...p, showModal: false }))} onSuccess={() => fetchData()} />
             )}
-            {activeTab === 'telegram' && <TelegramTab />}
         </AdminLayout>
     );
 };

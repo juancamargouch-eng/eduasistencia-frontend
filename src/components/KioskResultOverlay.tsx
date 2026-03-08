@@ -1,5 +1,5 @@
 import React from 'react';
-import { type Student, BASE_URL } from '../services/api';
+import { type Student, getStudentPhotoUrl } from '../services/api';
 import { type KioskStatus } from '../hooks/useKioskLogic';
 
 interface KioskResultOverlayProps {
@@ -22,7 +22,7 @@ const KioskResultOverlay: React.FC<KioskResultOverlayProps> = ({ status, message
                     }`}>
                     {student?.photo_url ? (
                         <img
-                            src={`${BASE_URL}${student.photo_url}`}
+                            src={getStudentPhotoUrl(student.photo_url) || ''}
                             alt=""
                             className="w-full h-full object-cover"
                             onError={(e) => (e.currentTarget.src = 'https://www.w3schools.com/howto/img_avatar.png')}

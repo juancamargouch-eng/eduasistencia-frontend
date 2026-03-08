@@ -10,7 +10,8 @@ import CameraCapture from './registration/CameraCapture';
 import RegistrationSuccessCard from './registration/RegistrationSuccessCard';
 
 interface RegistrationTabProps {
-    fullName: string; setFullName: (val: string) => void;
+    firstName: string; setFirstName: (val: string) => void;
+    lastName: string; setLastName: (val: string) => void;
     dni: string; setDni: (val: string) => void;
     grade: string; setGrade: (val: string) => void;
     section: string; setSection: (val: string) => void;
@@ -39,7 +40,10 @@ const RegistrationTab: React.FC<RegistrationTabProps> = (props) => {
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 pb-20">
             <Card title="Nuevo Alumno" description="Ingrese los datos y capture la foto facial" icon="person_add">
                 <form onSubmit={props.onSubmit} className="space-y-6">
-                    <Input label="Nombre Completo" value={props.fullName} onChange={e => props.setFullName(e.target.value)} required />
+                    <div className="grid grid-cols-2 gap-4">
+                        <Input label="Apellidos" value={props.lastName} onChange={e => props.setLastName(e.target.value.toUpperCase())} required />
+                        <Input label="Nombres" value={props.firstName} onChange={e => props.setFirstName(e.target.value.toUpperCase())} required />
+                    </div>
                     <Input label="DNI" value={props.dni} maxLength={8} onChange={e => props.setDni(e.target.value.replace(/\D/g, ''))} required font-mono />
 
                     <div className="grid grid-cols-2 gap-4">

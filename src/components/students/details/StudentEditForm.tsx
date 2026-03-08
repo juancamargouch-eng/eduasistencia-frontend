@@ -5,6 +5,8 @@ import { type ScheduleData } from '../../../services/api';
 interface Schedule extends ScheduleData { id: number; }
 
 interface StudentData {
+    first_name: string;
+    last_name: string;
     full_name: string;
     dni?: string;
     grade: string;
@@ -12,26 +14,38 @@ interface StudentData {
     telegram_chat_id?: string | null;
     notify_telegram?: boolean;
     schedule_id?: number | string | null;
+    photo_file?: File | null;
 }
 
 interface StudentEditFormProps {
     data: StudentData;
-    onChange: (field: keyof StudentData, value: string | number | boolean | null | undefined) => void;
+    onChange: (field: keyof StudentData, value: string | number | boolean | null | undefined | File) => void;
     schedules: Schedule[];
 }
 
 const StudentEditForm: React.FC<StudentEditFormProps> = ({ data, onChange, schedules }) => {
-    const grades = ["1ro Primaria", "2do Primaria", "3er Primaria", "4to Primaria", "5to Primaria", "6to Primaria", "1ro Secundaria", "2do Secundaria", "3er Secundaria", "4to Secundaria", "5to Secundaria"];
+    const grades = [
+        "1 PRIMARIA", "2 PRIMARIA", "3 PRIMARIA", "4 PRIMARIA", "5 PRIMARIA", "6 PRIMARIA",
+        "1 SECUNDARIA", "2 SECUNDARIA", "3 SECUNDARIA", "4 SECUNDARIA", "5 SECUNDARIA"
+    ];
     const sections = ["A", "B", "C", "D", "E"];
 
     return (
         <div className="space-y-4 w-full">
-            <Input
-                label="Nombre Completo"
-                value={data.full_name}
-                onChange={e => onChange('full_name', e.target.value)}
-                placeholder="Nombre Completo"
-            />
+            <div className="grid grid-cols-2 gap-3">
+                <Input
+                    label="Apellidos"
+                    value={data.last_name}
+                    onChange={e => onChange('last_name', e.target.value.toUpperCase())}
+                    placeholder="Apellidos"
+                />
+                <Input
+                    label="Nombres"
+                    value={data.first_name}
+                    onChange={e => onChange('first_name', e.target.value.toUpperCase())}
+                    placeholder="Nombres"
+                />
+            </div>
 
             <Input
                 label="DNI"
@@ -105,6 +119,19 @@ const StudentEditForm: React.FC<StudentEditFormProps> = ({ data, onChange, sched
                         </option>
                     ))}
                 </select>
+            </div>
+
+            <div className="space-y-2 pt-2">
+                <label className="text-sm font-semibold flex items-center gap-2">
+                    <span className="material-icons-outlined text-sm">photo_camera</span>
+                    Nueva Foto (Opcional)
+                </label>
+                <input
+                    type="file"
+                    accept="image/*"
+                    onChange={e => onChange('photo_file', e.target.files?.[0] || null)}
+                    className="w-full text-sm text-slate-500 file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-xs file:font-black file:uppercase file:bg-primary/10 file:text-primary hover:file:bg-primary/20 transition-all cursor-pointer"
+                />
             </div>
         </div>
     );

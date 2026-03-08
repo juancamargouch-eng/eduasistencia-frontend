@@ -1,6 +1,6 @@
 import React from 'react';
 import Badge from '../../ui/Badge';
-import { BASE_URL, type Student } from '../../../services/api';
+import { getStudentPhotoUrl, type Student } from '../../../services/api';
 
 interface StudentTelegramRowProps {
     student: Student;
@@ -14,7 +14,7 @@ const StudentTelegramRow: React.FC<StudentTelegramRowProps> = ({ student, onUpda
             <td className="py-4">
                 <div className="flex items-center gap-3">
                     {student.photo_url ? (
-                        <img src={`${BASE_URL}${student.photo_url}`} className="w-10 h-10 rounded-full object-cover border border-slate-200" alt="" />
+                        <img src={getStudentPhotoUrl(student.photo_url) || ''} className="w-10 h-10 rounded-full object-cover border border-slate-200" alt="" />
                     ) : (
                         <div className="w-10 h-10 rounded-full bg-slate-100 flex items-center justify-center text-slate-400">
                             <span className="material-icons-outlined">person</span>

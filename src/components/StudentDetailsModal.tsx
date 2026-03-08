@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { toast } from 'sonner';
-import { updateStudent, deleteStudent, getSchedules, type ScheduleData as ScheduleDataBase, BASE_URL } from '../services/api';
+import { updateStudent, deleteStudent, getSchedules, type ScheduleData as ScheduleDataBase, getStudentPhotoUrl } from '../services/api';
 import Badge from './ui/Badge';
 import Button from './ui/Button';
 
@@ -12,6 +12,8 @@ interface Schedule extends ScheduleDataBase { id: number; }
 
 interface Student {
     id: number;
+    first_name: string;
+    last_name: string;
     full_name: string;
     grade: string;
     section: string;
@@ -22,6 +24,7 @@ interface Student {
     telegram_chat_id?: string | null;
     telegram_user_id?: string | null;
     notify_telegram?: boolean;
+    photo_file?: File | null;
 }
 
 interface StudentDetailsModalProps {
@@ -52,10 +55,24 @@ const StudentDetailsModal: React.FC<StudentDetailsModalProps> = ({ student, onCl
     const handleSave = async () => {
         setLoading(true);
         try {
-            await updateStudent(student.id, {
-                ...editData,
-                schedule_id: !editData.schedule_id ? null : Number(editData.schedule_id)
+            const formData = new FormData();
+
+            // Append all fields from editData
+            Object.entries(editData).forEach(([key, value]) => {
+                if (value === undefined || value === null) return;
+
+                if (key === 'photo_file' && value instanceof File) {
+                    formData.append('file', value);
+                } else if (key === 'schedule_id') {
+                    formData.append(key, String(value));
+                } else if (typeof value === 'boolean') {
+                    formData.append(key, value ? 'true' : 'false');
+                } else if (key !== 'photo_url' && key !== 'photo_file') {
+                    formData.append(key, String(value));
+                }
             });
+
+            await updateStudent(student.id, formData);
             onUpdate();
             setIsEditing(false);
             toast.success("Estudiante actualizado");
@@ -91,7 +108,7 @@ const StudentDetailsModal: React.FC<StudentDetailsModalProps> = ({ student, onCl
                         <div className="w-28 h-28 rounded-[2rem] bg-white dark:bg-slate-800 p-1.5 shadow-xl shadow-slate-200/50 dark:shadow-none">
                             <div className="w-full h-full rounded-[1.6rem] overflow-hidden bg-slate-100 dark:bg-slate-700">
                                 {student.photo_url ? (
-                                    <img src={`${BASE_URL}${student.photo_url}`} className="w-full h-full object-cover" alt="" />
+                                    <img src={getStudentPhotoUrl(student.photo_url) || ''} className="w-full h-full object-cover" alt="" />
                                 ) : (
                                     <div className="w-full h-full flex items-center justify-center text-slate-300">
                                         <span className="material-icons-outlined text-5xl">person</span>

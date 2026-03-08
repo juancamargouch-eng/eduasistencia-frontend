@@ -4,9 +4,10 @@ import type { TabName } from './Sidebar';
 interface AdminHeaderProps {
     activeTab: TabName;
     currentTime: Date;
+    onMenuClick: () => void;
 }
 
-const AdminHeader: React.FC<AdminHeaderProps> = ({ activeTab, currentTime }) => {
+const AdminHeader: React.FC<AdminHeaderProps> = ({ activeTab, currentTime, onMenuClick }) => {
     const getTitle = () => {
         switch (activeTab) {
             case 'dashboard': return 'Resumen del Panel';
@@ -22,26 +23,34 @@ const AdminHeader: React.FC<AdminHeaderProps> = ({ activeTab, currentTime }) => 
     };
 
     return (
-        <header className="h-20 bg-white/80 dark:bg-background-dark/80 backdrop-blur-md border-b border-slate-200 dark:border-slate-800 flex items-center justify-between px-8 sticky top-0 z-10">
-            <div>
-                <h1 className="text-2xl font-bold text-slate-800 dark:text-white">
-                    {getTitle()}
-                </h1>
-                <p className="text-sm text-slate-500 capitalize">
-                    {currentTime.toLocaleDateString('es-PE', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' })}
-                </p>
-            </div>
+        <header className="h-16 sm:h-20 bg-white/80 dark:bg-background-dark/80 backdrop-blur-md border-b border-slate-200 dark:border-slate-800 flex items-center justify-between px-4 sm:px-8 sticky top-0 z-10">
             <div className="flex items-center gap-4">
-                <div className="flex items-center gap-2 mr-4">
+                <button
+                    onClick={onMenuClick}
+                    className="p-2 lg:hidden text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800 rounded-lg transition-colors"
+                >
+                    <span className="material-icons-outlined">menu</span>
+                </button>
+                <div>
+                    <h1 className="text-lg sm:text-2xl font-bold text-slate-800 dark:text-white truncate max-w-[150px] sm:max-w-none">
+                        {getTitle()}
+                    </h1>
+                    <p className="text-[10px] sm:text-sm text-slate-500 capitalize line-clamp-1">
+                        {currentTime.toLocaleDateString('es-PE', { weekday: 'short', year: 'numeric', month: 'short', day: 'numeric' })}
+                    </p>
+                </div>
+            </div>
+            <div className="flex items-center gap-2 sm:gap-4">
+                <div className="hidden xs:flex items-center gap-2 mr-2 sm:mr-4">
                     <button
-                        className="px-3 py-1 bg-red-100 text-red-600 rounded-lg text-xs font-bold hover:bg-red-200 transition-colors border border-red-200"
+                        className="px-2 sm:px-3 py-1 bg-red-100 text-red-600 rounded-lg text-[10px] sm:text-xs font-bold hover:bg-red-200 transition-colors border border-red-200"
                         onClick={() => toast.error("¡Alerta enviada!")}
                     >
-                        <span className="material-icons-outlined text-sm align-middle mr-1">warning</span>
+                        <span className="material-icons-outlined text-[14px] sm:text-sm align-middle mr-1">warning</span>
                         SOS
                     </button>
                     <button
-                        className="px-3 py-1 bg-slate-100 text-slate-600 rounded-lg text-xs font-bold hover:bg-slate-200 transition-colors border border-slate-200"
+                        className="hidden sm:inline-flex px-3 py-1 bg-slate-100 text-slate-600 rounded-lg text-xs font-bold hover:bg-slate-200 transition-colors border border-slate-200"
                         onClick={() => toast.info("Puertas Bloqueadas")}
                     >
                         <span className="material-icons-outlined text-sm align-middle mr-1">lock</span>

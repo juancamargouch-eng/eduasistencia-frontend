@@ -8,6 +8,7 @@ import { audioService } from '../services/audio';
 export type KioskStatus = 'IDLE' | 'PROCESSING' | 'SUCCESS' | 'WARNING' | 'ERROR';
 
 export const useKioskLogic = (webcamRef: React.RefObject<Webcam | null>, resetCallback: () => void) => {
+    const [resetTimeout, setResetTimeout] = useState<NodeJS.Timeout | null>(null);
     const [status, setStatus] = useState<KioskStatus>('IDLE');
     const [message, setMessage] = useState('Posicione su rostro');
     const [subMessage, setSubMessage] = useState('');
@@ -22,7 +23,11 @@ export const useKioskLogic = (webcamRef: React.RefObject<Webcam | null>, resetCa
     }, [resetCallback]);
 
     const handleVerification = async (qrCode?: string, dni?: string) => {
+        // Only block if already processing. If it was SUCCESS/WARNING, allow interruption.
         if (status === 'PROCESSING') return;
+
+        // Clean previous reset timer if any
+        if (resetTimeout) clearTimeout(resetTimeout);
 
         const video = webcamRef.current?.video;
         if (!video) return;
@@ -31,10 +36,10 @@ export const useKioskLogic = (webcamRef: React.RefObject<Webcam | null>, resetCa
         setMessage('Procesando...');
 
         try {
-            // Biometric Detection
+            // HIGH PERFORMANCE BIOMETRICS: Tiny size for ultra-fast detection
             const detection = await faceapi.detectSingleFace(
                 video,
-                new faceapi.TinyFaceDetectorOptions({ inputSize: 224, scoreThreshold: 0.5 })
+                new faceapi.TinyFaceDetectorOptions({ inputSize: 128, scoreThreshold: 0.5 })
             ).withFaceLandmarks().withFaceDescriptor();
 
             if (!detection) {
@@ -42,11 +47,13 @@ export const useKioskLogic = (webcamRef: React.RefObject<Webcam | null>, resetCa
                 setMessage('Rostro no detectado');
                 setSubMessage('Por favor mire a la cámara');
                 audioService.playError();
-                setTimeout(reset, 2000);
+                setResetTimeout(setTimeout(reset, 1500));
                 return;
             }
 
             const descriptor = Array.from(detection.descriptor);
+
+            // Optimized screenshot
             const imageSrc = webcamRef.current?.getScreenshot();
 
             const formData = new FormData();
@@ -105,7 +112,8 @@ export const useKioskLogic = (webcamRef: React.RefObject<Webcam | null>, resetCa
                 audioService.playError();
             }
         } finally {
-            setTimeout(reset, 5000);
+            // Keep success/warning long enough to be read, but allow scan to interrupt
+            setResetTimeout(setTimeout(reset, 5000));
         }
     };
 

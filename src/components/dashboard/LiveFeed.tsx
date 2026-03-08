@@ -1,5 +1,5 @@
 import React from 'react';
-import { validateAttendanceLog, BASE_URL } from '../../services/api';
+import { validateAttendanceLog, getStudentPhotoUrl } from '../../services/api';
 
 interface AttendanceLog {
     id: number;
@@ -48,7 +48,7 @@ const LiveFeed: React.FC<LiveFeedProps> = ({ logs, onRefresh }) => {
                         <div className="w-16 h-16 rounded-lg bg-slate-200 dark:bg-slate-700 flex-shrink-0 overflow-hidden relative">
                             {log.student?.photo_url ? (
                                 <img
-                                    src={`${BASE_URL}${log.student.photo_url}`}
+                                    src={getStudentPhotoUrl(log.student.photo_url) || ''}
                                     className="w-full h-full object-cover"
                                     alt="Student"
                                     onError={(e) => (e.target as HTMLImageElement).src = 'https://via.placeholder.com/150?text=?'}

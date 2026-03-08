@@ -1,18 +1,31 @@
 import { useNavigate, useLocation } from 'react-router-dom';
+import { useAuth } from '../../context/AuthContext';
 
 export type TabName = 'dashboard' | 'registration' | 'students' | 'reports' | 'justifications' | 'settings' | 'daily_attendance' | 'telegram';
 
-const Sidebar: React.FC = () => {
+interface SidebarProps {
+    isOpen: boolean;
+    closeSidebar: () => void;
+}
+
+const Sidebar: React.FC<SidebarProps> = ({ isOpen, closeSidebar }) => {
     const navigate = useNavigate();
     const location = useLocation();
+    const { isSuperuser } = useAuth();
 
     // Determine active tab from URL
     const currentPath = location.pathname.split('/').pop() || 'dashboard';
     const activeTab = currentPath as TabName;
+
     return (
-        <aside className="w-64 bg-white dark:bg-background-dark border-r border-slate-200 dark:border-slate-800 flex flex-col h-screen sticky top-0">
+        <aside className={`
+            fixed lg:sticky top-0 left-0 z-30
+            w-64 h-screen bg-white dark:bg-background-dark border-r border-slate-200 dark:border-slate-800 
+            flex flex-col transition-transform duration-300 ease-in-out
+            ${isOpen ? 'translate-x-0' : '-translate-x-full lg:translate-x-0'}
+        `}>
             <div className="p-6 flex items-center justify-center">
-                <img src="/logo_eduasistencia.png" alt="EduAsistencia Logo" className="h-12 w-auto object-contain" />
+                <img src="/logo_eduasistencia.png" alt="EduAsistencia Logo" className="h-17 w-auto object-contain" />
             </div>
             <nav className="flex-1 px-4 space-y-2 mt-4">
                 <NavItem
@@ -21,6 +34,7 @@ const Sidebar: React.FC = () => {
                     label="Panel Principal"
                     activeTab={activeTab}
                     navigate={navigate}
+                    onClick={closeSidebar}
                 />
                 <NavItem
                     id="registration"
@@ -28,6 +42,7 @@ const Sidebar: React.FC = () => {
                     label="Registro"
                     activeTab={activeTab}
                     navigate={navigate}
+                    onClick={closeSidebar}
                 />
                 <NavItem
                     id="students"
@@ -35,6 +50,7 @@ const Sidebar: React.FC = () => {
                     label="Estudiantes"
                     activeTab={activeTab}
                     navigate={navigate}
+                    onClick={closeSidebar}
                 />
                 <NavItem
                     id="daily_attendance"
@@ -42,6 +58,7 @@ const Sidebar: React.FC = () => {
                     label="Control Asistencia"
                     activeTab={activeTab}
                     navigate={navigate}
+                    onClick={closeSidebar}
                 />
                 <NavItem
                     id="reports"
@@ -49,6 +66,7 @@ const Sidebar: React.FC = () => {
                     label="Reportes"
                     activeTab={activeTab}
                     navigate={navigate}
+                    onClick={closeSidebar}
                 />
                 <NavItem
                     id="justifications"
@@ -56,21 +74,29 @@ const Sidebar: React.FC = () => {
                     label="Justificaciones"
                     activeTab={activeTab}
                     navigate={navigate}
+                    onClick={closeSidebar}
                 />
-                <NavItem
-                    id="telegram"
-                    icon="send"
-                    label="Telegram"
-                    activeTab={activeTab}
-                    navigate={navigate}
-                />
-                <NavItem
-                    id="settings"
-                    icon="settings"
-                    label="Configuración"
-                    activeTab={activeTab}
-                    navigate={navigate}
-                />
+                {/* Menús restringidos a Superusuarios */}
+                {isSuperuser && (
+                    <>
+                        <NavItem
+                            id="telegram"
+                            icon="send"
+                            label="Telegram"
+                            activeTab={activeTab}
+                            navigate={navigate}
+                            onClick={closeSidebar}
+                        />
+                        <NavItem
+                            id="settings"
+                            icon="settings"
+                            label="Configuración"
+                            activeTab={activeTab}
+                            navigate={navigate}
+                            onClick={closeSidebar}
+                        />
+                    </>
+                )}
             </nav>
             <div className="p-6">
                 <div className="bg-primary/5 dark:bg-primary/10 p-4 rounded-xl">
@@ -93,9 +119,12 @@ interface NavItemProps {
     navigate: (path: string) => void;
 }
 
-const NavItem: React.FC<NavItemProps> = ({ id, icon, label, activeTab, navigate }) => (
+const NavItem: React.FC<NavItemProps & { onClick: () => void }> = ({ id, icon, label, activeTab, navigate, onClick }) => (
     <button
-        onClick={() => navigate(`/admin/${id}`)}
+        onClick={() => {
+            navigate(`/admin/${id}`);
+            onClick();
+        }}
         className={`w-full flex items-center gap-3 px-4 py-3 rounded-xl transition-all ${activeTab === id
             ? 'bg-primary text-white shadow-lg shadow-primary/20'
             : 'text-slate-600 dark:text-slate-400 hover:bg-primary/10 hover:text-primary'

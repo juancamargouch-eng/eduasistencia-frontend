@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { toast } from 'sonner';
-import { createJustification, type Student } from '../services/api';
+import { createJustification, getStudentPhotoUrl, type Student } from '../services/api';
 
 interface JustificationModalProps {
     student: Student;
@@ -52,7 +52,7 @@ const JustificationModal: React.FC<JustificationModalProps> = ({ student, absenc
                         <div className="flex items-center gap-4 p-4 bg-blue-50 dark:bg-blue-900/20 rounded-xl border border-blue-100 dark:border-blue-800/50">
                             <div className="w-12 h-12 rounded-full bg-blue-100 dark:bg-blue-800 flex items-center justify-center text-blue-600 dark:text-blue-300 font-bold text-xl">
                                 {student.photo_url ? (
-                                    <img src={student.photo_url} alt={student.full_name} className="w-full h-full rounded-full object-cover" />
+                                    <img src={getStudentPhotoUrl(student.photo_url) || ''} alt={student.full_name} className="w-full h-full rounded-full object-cover" />
                                 ) : (
                                     student.full_name.charAt(0)
                                 )}

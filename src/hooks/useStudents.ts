@@ -32,7 +32,18 @@ export const useStudents = () => {
 
     const handleUpdateStudent = async (id: number, data: Partial<Student>) => {
         try {
-            await updateStudent(id, data);
+            const formData = new FormData();
+            Object.entries(data).forEach(([key, value]) => {
+                if (value === undefined || value === null) return;
+
+                if (typeof value === 'boolean') {
+                    formData.append(key, value ? 'true' : 'false');
+                } else if (key !== 'photo_url' && key !== 'full_name') {
+                    formData.append(key, String(value));
+                }
+            });
+
+            await updateStudent(id, formData);
             await refreshStudents();
             return true;
         } catch (error) {

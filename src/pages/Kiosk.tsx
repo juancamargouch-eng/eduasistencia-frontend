@@ -22,7 +22,7 @@ const Kiosk: React.FC = () => {
 
     useQRScanner({
         webcamRef,
-        enabled: status === 'IDLE' && !showManual && modelsLoaded,
+        enabled: (status === 'IDLE' || status === 'SUCCESS' || status === 'WARNING' || status === 'ERROR') && !showManual && modelsLoaded,
         onDetected: (code) => handleVerification(code)
     });
 
@@ -53,15 +53,9 @@ const Kiosk: React.FC = () => {
 
     return (
         <div className="bg-slate-50 dark:bg-slate-900 text-slate-800 dark:text-slate-100 font-display min-h-screen flex flex-col overflow-hidden relative">
-            <header className="p-8 flex justify-between items-start z-10">
+            <header className="p-8 flex justify-between items-center z-10 w-full max-w-7xl mx-auto">
                 <div className="flex items-center gap-5">
-                    <div className="bg-white dark:bg-slate-800 p-3 rounded-2xl shadow-xl border border-slate-100 dark:border-slate-700">
-                        <span className="material-icons text-primary text-3xl">school</span>
-                    </div>
-                    <div>
-                        <h1 className="text-2xl font-bold tracking-tight text-slate-900 dark:text-white">ST. JUDE'S ACADEMY</h1>
-                        <p className="text-slate-500 font-medium tracking-widest text-[10px] uppercase">Kiosco de Ingreso #04</p>
-                    </div>
+                    <img src="/logo_eduasistencia.png" alt="EduAsistencia Logo" className="h-24 w-auto object-contain" />
                 </div>
                 <div className="text-right">
                     <div className="text-6xl font-black tracking-tighter text-slate-900 dark:text-white tabular-nums">
@@ -79,7 +73,7 @@ const Kiosk: React.FC = () => {
                 <div className={`relative w-full max-w-lg aspect-[3/4] bg-slate-900 rounded-[3rem] overflow-hidden shadow-2xl transition-all duration-500 ${ambientFace && status === 'IDLE' ? 'ring-[12px] ring-green-500/20' : 'ring-1 ring-white/10'
                     }`}>
                     {!modelsLoaded && <LoadingOverlay />}
-                    <Webcam ref={webcamRef} audio={false} screenshotFormat="image/jpeg" videoConstraints={{ facingMode: "user", aspectRatio: 0.75 }} className="w-full h-full object-cover scale-x-[-1]" />
+                    <Webcam ref={webcamRef} audio={false} screenshotFormat="image/jpeg" videoConstraints={{ facingMode: "environment", aspectRatio: 0.75 }} className="w-full h-full object-cover" />
 
                     {status === 'IDLE' && !showManual && <ScannerOverlay faceDetected={ambientFace} />}
                     <KioskResultOverlay status={status} message={message} subMessage={subMessage} student={lastStudent} />

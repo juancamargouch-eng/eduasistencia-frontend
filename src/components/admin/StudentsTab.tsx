@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import type { Student } from '../../services/api';
-import { BASE_URL } from '../../services/api';
+import { getStudentPhotoUrl } from '../../services/api';
 
 interface StudentsTabProps {
     students: Student[];
@@ -11,6 +11,7 @@ interface StudentsTabProps {
     grades: string[];
     sections: string[];
     onImport: () => void;
+    onBulkPhotoEnroll: () => void;
     onSelectStudent: (student: Student) => void;
 }
 
@@ -19,7 +20,7 @@ const StudentsTab: React.FC<StudentsTabProps> = ({
     filterGrade, setFilterGrade,
     filterSection, setFilterSection,
     grades, sections,
-    onImport, onSelectStudent
+    onImport, onBulkPhotoEnroll, onSelectStudent
 }) => {
     const [viewMode, setViewMode] = useState<'list' | 'grid'>('grid');
 
@@ -57,6 +58,10 @@ const StudentsTab: React.FC<StudentsTabProps> = ({
 
                     <button onClick={onImport} className="px-5 py-2.5 bg-green-600 hover:bg-green-700 text-white rounded-xl text-sm font-bold flex items-center gap-2 transition-all shadow-lg shadow-green-500/20 active:scale-95">
                         <span className="material-icons-outlined text-lg">upload_file</span> Importar
+                    </button>
+
+                    <button onClick={onBulkPhotoEnroll} className="px-5 py-2.5 bg-blue-600 hover:bg-blue-700 text-white rounded-xl text-sm font-bold flex items-center gap-2 transition-all shadow-lg shadow-blue-500/20 active:scale-95">
+                        <span className="material-icons-outlined text-lg">add_a_photo</span> Enrolar Fotos
                     </button>
 
                     <div className="h-8 w-[1px] bg-slate-200 dark:bg-slate-700 mx-1 hidden md:block"></div>
@@ -99,7 +104,11 @@ const StudentsTab: React.FC<StudentsTabProps> = ({
                                         <div className="flex items-center gap-4">
                                             <div className="w-12 h-12 rounded-xl bg-slate-200 dark:bg-slate-800 overflow-hidden ring-2 ring-transparent group-hover:ring-primary/20 transition-all">
                                                 {student.photo_url ? (
-                                                    <img src={`${BASE_URL}${student.photo_url}`} alt={student.full_name} className="w-full h-full object-cover" />
+                                                    <img
+                                                        src={getStudentPhotoUrl(student.photo_url) || ''}
+                                                        alt={student.full_name}
+                                                        className="w-full h-full object-cover"
+                                                    />
                                                 ) : (
                                                     <div className="w-full h-full flex items-center justify-center text-slate-400">
                                                         <span className="material-icons text-2xl">person</span>
@@ -151,7 +160,7 @@ const StudentsTab: React.FC<StudentsTabProps> = ({
                             <div className="aspect-[3/4] rounded-[1.5rem] overflow-hidden bg-slate-200 dark:bg-slate-800 mb-4 ring-2 ring-transparent group-hover:ring-primary/30 transition-all relative">
                                 {student.photo_url ? (
                                     <img
-                                        src={`${BASE_URL}${student.photo_url}`}
+                                        src={getStudentPhotoUrl(student.photo_url) || ''}
                                         alt={student.full_name}
                                         className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-110"
                                     />

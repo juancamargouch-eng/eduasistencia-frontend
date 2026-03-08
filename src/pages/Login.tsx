@@ -32,8 +32,8 @@ const Login: React.FC = () => {
             <main className="relative z-10 w-full max-w-md px-6">
                 {/* Brand Identity */}
                 <div className="text-center mb-8">
-                    <div className="inline-flex items-center justify-center w-16 h-16 bg-primary rounded-xl mb-4 shadow-lg shadow-primary/20">
-                        <span className="material-icons text-white text-3xl">qr_code_scanner</span>
+                    <div className="flex items-center justify-center mb-4">
+                        <img src="/logo_eduasistencia.png" alt="EduAsistencia Logo" className="h-14 w-auto object-contain" />
                     </div>
                     <h1 className="text-2xl font-bold text-slate-900 dark:text-white tracking-tight">Admin Portal</h1>
                     <p className="text-slate-500 dark:text-slate-400 mt-2 text-sm">Intelligent school attendance & security</p>

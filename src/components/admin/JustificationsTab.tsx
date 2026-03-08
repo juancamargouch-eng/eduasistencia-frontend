@@ -1,5 +1,6 @@
 import React from 'react';
 import type { Student, Justification } from '../../services/api';
+import { getStudentPhotoUrl } from '../../services/api';
 
 export interface Absense {
     date: string;
@@ -59,7 +60,7 @@ const JustificationsTab: React.FC<JustificationsTabProps> = ({
                         <div className="flex items-center gap-3 px-4 py-2 bg-slate-50 dark:bg-slate-800 rounded-lg border border-slate-200 dark:border-slate-700">
                             <div className="w-10 h-10 rounded-full bg-slate-200 dark:bg-slate-700 overflow-hidden">
                                 {justificationStudentData.photo_url ? (
-                                    <img src={justificationStudentData.photo_url} alt="Student" className="w-full h-full object-cover" />
+                                    <img src={getStudentPhotoUrl(justificationStudentData.photo_url) || ''} alt="Student" className="w-full h-full object-cover" />
                                 ) : (
                                     <span className="material-icons text-slate-400">person</span>
                                 )}
