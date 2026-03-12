@@ -14,6 +14,7 @@ import DailyAttendanceTab from '../components/admin/DailyAttendanceTab';
 import ReportsTab from '../components/admin/ReportsTab';
 import SettingsTabContent from '../components/admin/SettingsTabContent';
 import TelegramTab from '../components/admin/TelegramTab';
+import OccupancyTab from '../components/admin/OccupancyTab';
 import StudentDetailsModal from '../components/StudentDetailsModal';
 import ImportStudentsModal from '../components/ImportStudentsModal';
 import BulkPhotoEnrollment from '../components/admin/BulkPhotoEnrollment';
@@ -31,7 +32,7 @@ const AdminDashboard: React.FC = () => {
         selectedStudent, setSelectedStudent, showImportModal, setShowImportModal,
         refreshAnalytics, fetchData, handleSubmitRegister,
         editingScheduleId, setEditingScheduleId, handleEditSchedule, handleSubmitSchedule,
-        handleExportReport
+        handleExportReport, handleSearchAbsences, handleJustifySuccess, handleUpdateJustificationStatus
     } = useAdminDashboard();
 
     const [showBulkPhotoModal, setShowBulkPhotoModal] = React.useState(false);
@@ -45,6 +46,7 @@ const AdminDashboard: React.FC = () => {
     return (
         <AdminLayout activeTab={activeTab}>
             {activeTab === 'dashboard' && <DashboardTab logs={logs} occupancy={occupancy} onRefresh={refreshAnalytics} />}
+            {activeTab === 'occupancy' && <OccupancyTab />}
 
             {activeTab === 'registration' && (
                 <RegistrationTab
@@ -95,7 +97,10 @@ const AdminDashboard: React.FC = () => {
                     reportDateTo={reportFilters.to} setReportDateTo={t => setReportFilters(p => ({ ...p, to: t }))}
                     reportGrade={reportFilters.grade} setReportGrade={g => setReportFilters(p => ({ ...p, grade: g }))}
                     reportSection={reportFilters.section} setReportSection={s => setReportFilters(p => ({ ...p, section: s }))}
-                    grades={grades} sections={sections} onExport={handleExportReport}
+                    reportSearch={reportFilters.search} setReportSearch={s => setReportFilters(p => ({ ...p, search: s }))}
+                    reportStatus={reportFilters.status} setReportStatus={s => setReportFilters(p => ({ ...p, status: s }))}
+                    reportScheduleId={reportFilters.scheduleId} setReportScheduleId={id => setReportFilters(p => ({ ...p, scheduleId: id }))}
+                    grades={grades} sections={sections} schedules={schedules} onExport={handleExportReport}
                 />
             )}
 
@@ -103,8 +108,9 @@ const AdminDashboard: React.FC = () => {
                 <JustificationsTab
                     justificationStudentId={justifState.studentId} setJustificationStudentId={id => setJustifState(p => ({ ...p, studentId: id }))}
                     isLoadingAbsences={justifState.loading} justificationStudentData={justifState.studentData}
-                    absences={justifState.absences} justifications={justifications} onSearchAbsences={() => { }}
+                    absences={justifState.absences} justifications={justifications} onSearchAbsences={handleSearchAbsences}
                     onJustify={date => setJustifState(p => ({ ...p, selectedAbsence: date, showModal: true }))}
+                    onUpdateStatus={handleUpdateJustificationStatus}
                 />
             )}
 
@@ -150,7 +156,12 @@ const AdminDashboard: React.FC = () => {
             )}
 
             {justifState.showModal && justifState.studentData && justifState.selectedAbsence && (
-                <JustificationModal student={justifState.studentData} absenceDate={justifState.selectedAbsence} onClose={() => setJustifState(p => ({ ...p, showModal: false }))} onSuccess={() => fetchData()} />
+                <JustificationModal 
+                    student={justifState.studentData} 
+                    absenceDate={justifState.selectedAbsence} 
+                    onClose={() => setJustifState(p => ({ ...p, showModal: false }))} 
+                    onSuccess={handleJustifySuccess} 
+                />
             )}
         </AdminLayout>
     );

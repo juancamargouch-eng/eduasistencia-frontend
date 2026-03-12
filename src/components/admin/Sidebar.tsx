@@ -1,7 +1,7 @@
 import { useNavigate, useLocation } from 'react-router-dom';
 import { useAuth } from '../../context/AuthContext';
 
-export type TabName = 'dashboard' | 'registration' | 'students' | 'reports' | 'justifications' | 'settings' | 'daily_attendance' | 'telegram';
+export type TabName = 'dashboard' | 'registration' | 'students' | 'reports' | 'justifications' | 'settings' | 'daily_attendance' | 'telegram' | 'occupancy';
 
 interface SidebarProps {
     isOpen: boolean;
@@ -24,78 +24,24 @@ const Sidebar: React.FC<SidebarProps> = ({ isOpen, closeSidebar }) => {
             flex flex-col transition-transform duration-300 ease-in-out
             ${isOpen ? 'translate-x-0' : '-translate-x-full lg:translate-x-0'}
         `}>
-            <div className="p-6 flex items-center justify-center">
-                <img src="/logo_eduasistencia.png" alt="EduAsistencia Logo" className="h-17 w-auto object-contain" />
+            <div className="pt-10 pb-6 flex items-center justify-center">
+                <img src="/logo_eduasistencia.png" alt="EduAsistencia Logo" className="h-24 w-auto object-contain drop-shadow-2xl transition-transform duration-500 hover:scale-105" />
             </div>
-            <nav className="flex-1 px-4 space-y-2 mt-4">
-                <NavItem
-                    id="dashboard"
-                    icon="dashboard"
-                    label="Panel Principal"
-                    activeTab={activeTab}
-                    navigate={navigate}
-                    onClick={closeSidebar}
-                />
-                <NavItem
-                    id="registration"
-                    icon="person_add"
-                    label="Registro"
-                    activeTab={activeTab}
-                    navigate={navigate}
-                    onClick={closeSidebar}
-                />
-                <NavItem
-                    id="students"
-                    icon="people"
-                    label="Estudiantes"
-                    activeTab={activeTab}
-                    navigate={navigate}
-                    onClick={closeSidebar}
-                />
-                <NavItem
-                    id="daily_attendance"
-                    icon="event_available"
-                    label="Control Asistencia"
-                    activeTab={activeTab}
-                    navigate={navigate}
-                    onClick={closeSidebar}
-                />
-                <NavItem
-                    id="reports"
-                    icon="assignment"
-                    label="Reportes"
-                    activeTab={activeTab}
-                    navigate={navigate}
-                    onClick={closeSidebar}
-                />
-                <NavItem
-                    id="justifications"
-                    icon="medical_services"
-                    label="Justificaciones"
-                    activeTab={activeTab}
-                    navigate={navigate}
-                    onClick={closeSidebar}
-                />
-                {/* Menús restringidos a Superusuarios */}
+            <nav className="flex-1 px-4 space-y-2 mt-4 overflow-y-auto custom-scrollbar">
+                <NavItem id="dashboard" icon="dashboard" label="Panel Principal" activeTab={activeTab} navigate={navigate} onClick={closeSidebar} />
+                <NavItem id="registration" icon="person_add" label="Registro" activeTab={activeTab} navigate={navigate} onClick={closeSidebar} />
+                <NavItem id="students" icon="people" label="Estudiantes" activeTab={activeTab} navigate={navigate} onClick={closeSidebar} />
+                <NavItem id="daily_attendance" icon="event_available" label="Asistencia" activeTab={activeTab} navigate={navigate} onClick={closeSidebar} />
+                <NavItem id="occupancy" icon="groups" label="Aforo" activeTab={activeTab} navigate={navigate} onClick={closeSidebar} />
+                <NavItem id="reports" icon="assignment" label="Reportes" activeTab={activeTab} navigate={navigate} onClick={closeSidebar} />
+                <NavItem id="justifications" icon="medical_services" label="Justificaciones" activeTab={activeTab} navigate={navigate} onClick={closeSidebar} />
+                
                 {isSuperuser && (
-                    <>
-                        <NavItem
-                            id="telegram"
-                            icon="send"
-                            label="Telegram"
-                            activeTab={activeTab}
-                            navigate={navigate}
-                            onClick={closeSidebar}
-                        />
-                        <NavItem
-                            id="settings"
-                            icon="settings"
-                            label="Configuración"
-                            activeTab={activeTab}
-                            navigate={navigate}
-                            onClick={closeSidebar}
-                        />
-                    </>
+                    <div className="pt-4 mt-4 border-t border-slate-100 dark:border-slate-800 space-y-2">
+                        <p className="px-5 text-[9px] font-black uppercase tracking-[0.3em] text-slate-400 mb-2">Avanzado</p>
+                        <NavItem id="telegram" icon="send" label="Telegram" activeTab={activeTab} navigate={navigate} onClick={closeSidebar} />
+                        <NavItem id="settings" icon="settings" label="Ajustes" activeTab={activeTab} navigate={navigate} onClick={closeSidebar} />
+                    </div>
                 )}
             </nav>
             <div className="p-6">
@@ -125,13 +71,13 @@ const NavItem: React.FC<NavItemProps & { onClick: () => void }> = ({ id, icon, l
             navigate(`/admin/${id}`);
             onClick();
         }}
-        className={`w-full flex items-center gap-3 px-4 py-3 rounded-xl transition-all ${activeTab === id
-            ? 'bg-primary text-white shadow-lg shadow-primary/20'
-            : 'text-slate-600 dark:text-slate-400 hover:bg-primary/10 hover:text-primary'
+        className={`w-full flex items-center gap-4 px-5 py-4 rounded-[1.5rem] transition-all duration-300 group ${activeTab === id
+            ? 'bg-primary text-white shadow-[0_10px_25px_-5px_rgba(225,5,33,0.3)]'
+            : 'text-slate-500 dark:text-slate-400 hover:bg-primary/10 hover:text-primary'
             }`}
     >
-        <span className="material-icons-outlined">{icon}</span>
-        <span className="font-medium">{label}</span>
+        <span className={`material-icons-outlined text-xl transition-transform group-hover:scale-110 ${activeTab === id ? 'text-white' : 'text-slate-400 group-hover:text-primary'}`}>{icon}</span>
+        <span className="font-black uppercase tracking-widest text-[10px]">{label}</span>
     </button>
 );
 

@@ -8,38 +8,45 @@ import { audioService } from '../services/audio';
 export type KioskStatus = 'IDLE' | 'PROCESSING' | 'SUCCESS' | 'WARNING' | 'ERROR';
 
 export const useKioskLogic = (webcamRef: React.RefObject<Webcam | null>, resetCallback: () => void) => {
-    const [resetTimeout, setResetTimeout] = useState<NodeJS.Timeout | null>(null);
     const [status, setStatus] = useState<KioskStatus>('IDLE');
     const [message, setMessage] = useState('Posicione su rostro');
     const [subMessage, setSubMessage] = useState('');
     const [lastStudent, setLastStudent] = useState<Student | null>(null);
+    const [eventType, setEventType] = useState<'ENTRY' | 'EXIT'>('ENTRY');
+    const [resetTimeout, setResetTimeout] = useState<ReturnType<typeof setTimeout> | null>(null);
 
     const reset = useCallback(() => {
         setStatus('IDLE');
         setMessage('Listo para Escanear');
         setSubMessage('');
         setLastStudent(null);
+        setEventType('ENTRY');
         resetCallback();
     }, [resetCallback]);
 
     const handleVerification = async (qrCode?: string, dni?: string) => {
-        // Only block if already processing. If it was SUCCESS/WARNING, allow interruption.
+        // Only block if already processing.
         if (status === 'PROCESSING') return;
 
-        // Clean previous reset timer if any
-        if (resetTimeout) clearTimeout(resetTimeout);
+        // INSTANT CLEANUP: If there was a success/error modal, clear it immediately
+        if (resetTimeout) {
+            clearTimeout(resetTimeout);
+            setResetTimeout(null);
+        }
 
         const video = webcamRef.current?.video;
         if (!video) return;
 
+        // Force transition to PROCESSING to hide any existing modals (KioskResultOverlay vanishes on PROCESSING)
         setStatus('PROCESSING');
         setMessage('Procesando...');
+        setSubMessage('Capturando biometría...');
 
         try {
-            // HIGH PERFORMANCE BIOMETRICS: Tiny size for ultra-fast detection
+            // HIGH PERFORMANCE BIOMETRICS: Symmetric size for consistent accuracy (matched with registration)
             const detection = await faceapi.detectSingleFace(
                 video,
-                new faceapi.TinyFaceDetectorOptions({ inputSize: 128, scoreThreshold: 0.5 })
+                new faceapi.TinyFaceDetectorOptions({ inputSize: 224, scoreThreshold: 0.5 })
             ).withFaceLandmarks().withFaceDescriptor();
 
             if (!detection) {
@@ -70,15 +77,26 @@ export const useKioskLogic = (webcamRef: React.RefObject<Webcam | null>, resetCa
 
             if (result.verification_status) {
                 setLastStudent(result.student);
-                if (result.status === 'LATE') {
+                const isExit = result.event_type === 'EXIT';
+                setEventType(result.event_type || 'ENTRY');
+                
+                const logTime = new Date(result.timestamp);
+                const timeStr = logTime.toLocaleTimeString('es-PE', { hour: '2-digit', minute: '2-digit', hour12: true });
+
+                if (isExit) {
+                    setStatus('SUCCESS');
+                    setMessage(`¡Hasta pronto, ${result.student?.full_name?.split(' ')[0]}!`);
+                    setSubMessage(`Salida registrada a las ${timeStr}`);
+                    audioService.playSuccess();
+                } else if (result.status === 'LATE') {
                     setMessage(`¡Bienvenido (Tardanza), ${result.student?.full_name?.split(' ')[0]}!`);
                     setStatus('WARNING');
-                    setSubMessage('Has llegado tarde a tu turno.');
+                    setSubMessage(`Entrada (Tardanza) a las ${timeStr}`);
                     audioService.playNotification();
                 } else {
                     setStatus('SUCCESS');
                     setMessage(`¡Bienvenido, ${result.student?.full_name?.split(' ')[0]}!`);
-                    setSubMessage('Asistencia registrada correctamente');
+                    setSubMessage(`Asistencia registrada a las ${timeStr}`);
                     audioService.playSuccess();
                 }
             } else {
@@ -122,6 +140,7 @@ export const useKioskLogic = (webcamRef: React.RefObject<Webcam | null>, resetCa
         message, setMessage,
         subMessage, setSubMessage,
         lastStudent, setLastStudent,
+        eventType,
         reset,
         handleVerification
     };

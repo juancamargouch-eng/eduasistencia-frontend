@@ -1,13 +1,26 @@
+import React, { useState } from 'react';
 import { toast } from 'sonner';
 import type { TabName } from './Sidebar';
+import { type AdminUser } from '../../services/api';
 
 interface AdminHeaderProps {
     activeTab: TabName;
     currentTime: Date;
     onMenuClick: () => void;
+    onOpenEditProfile: () => void;
+    user: AdminUser | null;
 }
 
-const AdminHeader: React.FC<AdminHeaderProps> = ({ activeTab, currentTime, onMenuClick }) => {
+const AdminHeader: React.FC<AdminHeaderProps> = ({ activeTab, currentTime, onMenuClick, onOpenEditProfile, user }) => {
+    const [isMenuOpen, setIsMenuOpen] = useState(false);
+
+    const handleLogout = () => {
+        localStorage.removeItem('token');
+        localStorage.removeItem('user');
+        toast.success("Sesión cerrada correctamente");
+        window.location.href = '/login';
+    };
+
     const getTitle = () => {
         switch (activeTab) {
             case 'dashboard': return 'Resumen del Panel';
@@ -61,15 +74,60 @@ const AdminHeader: React.FC<AdminHeaderProps> = ({ activeTab, currentTime, onMen
                     <span className="material-icons-outlined">notifications</span>
                     <span className="absolute top-2 right-2 w-2 h-2 bg-red-500 rounded-full border-2 border-white dark:border-background-dark"></span>
                 </button>
+
                 <div className="h-8 w-[1px] bg-slate-200 dark:bg-slate-800 mx-2"></div>
-                <div className="flex items-center gap-3">
-                    <div className="text-right hidden sm:block">
-                        <p className="text-sm font-semibold text-slate-800 dark:text-white">Administrador</p>
-                        <p className="text-xs text-slate-500 uppercase font-medium">Admin Sistema</p>
-                    </div>
-                    <div className="w-10 h-10 rounded-full bg-slate-200 dark:bg-slate-700 flex items-center justify-center">
-                        <span className="material-icons-outlined text-slate-500">person</span>
-                    </div>
+
+                {/* Profile Section with Dropdown */}
+                <div className="relative">
+                    <button 
+                        onClick={() => setIsMenuOpen(!isMenuOpen)}
+                        className="flex items-center gap-3 hover:bg-slate-100 dark:hover:bg-slate-800 p-1.5 rounded-xl transition-all group"
+                    >
+                        <div className="text-right hidden sm:block">
+                            <p className="text-sm font-bold text-slate-800 dark:text-white line-clamp-1 max-w-[150px]">
+                                {user?.full_name || user?.username || 'Administrador'}
+                            </p>
+                            <p className="text-[10px] text-slate-500 uppercase font-black tracking-widest opacity-60">
+                                {user?.is_superuser ? 'Super Usuario' : 'Admin Sistema'}
+                            </p>
+                        </div>
+                        <div className="w-10 h-10 rounded-full bg-slate-100 dark:bg-slate-800 border-2 border-slate-200 dark:border-slate-700 flex items-center justify-center group-hover:border-primary/50 transition-colors overflow-hidden">
+                            <span className="material-icons-outlined text-slate-400 font-bold">person</span>
+                        </div>
+                        <span className={`material-icons-outlined text-slate-400 text-sm transition-transform duration-300 ${isMenuOpen ? 'rotate-180' : ''}`}>expand_more</span>
+                    </button>
+
+                    {/* Dropdown Menu */}
+                    {isMenuOpen && (
+                        <>
+                            <div className="fixed inset-0 z-10" onClick={() => setIsMenuOpen(false)}></div>
+                            <div className="absolute right-0 mt-3 w-56 bg-white dark:bg-slate-900 rounded-2xl shadow-2xl border border-slate-100 dark:border-slate-800 py-2 z-20 animate-in fade-in zoom-in duration-200 origin-top-right">
+                                <div className="px-4 py-3 border-b border-slate-100 dark:border-slate-800 mb-1 sm:hidden">
+                                     <p className="text-sm font-bold text-slate-800 dark:text-white truncate">
+                                        {user?.full_name || user?.username}
+                                    </p>
+                                    <p className="text-[10px] text-slate-500 uppercase font-bold tracking-widest">
+                                        Admin Dashboard
+                                    </p>
+                                </div>
+                                <button 
+                                    onClick={() => { onOpenEditProfile(); setIsMenuOpen(false); }}
+                                    className="w-full text-left px-4 py-3 text-sm text-slate-700 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-800 flex items-center gap-3 transition-colors"
+                                >
+                                    <span className="material-icons-outlined text-lg text-primary">manage_accounts</span>
+                                    <span className="font-semibold">Editar Perfil</span>
+                                </button>
+                                <div className="h-px bg-slate-100 dark:bg-slate-800 mx-2 my-1"></div>
+                                <button 
+                                    onClick={handleLogout}
+                                    className="w-full text-left px-4 py-3 text-sm text-red-600 hover:bg-red-50 dark:hover:bg-red-950/30 flex items-center gap-3 transition-colors"
+                                >
+                                    <span className="material-icons-outlined text-lg">logout</span>
+                                    <span className="font-semibold">Cerrar Sesión</span>
+                                </button>
+                            </div>
+                        </>
+                    )}
                 </div>
             </div>
         </header>
@@ -77,3 +135,4 @@ const AdminHeader: React.FC<AdminHeaderProps> = ({ activeTab, currentTime, onMen
 };
 
 export default AdminHeader;
+

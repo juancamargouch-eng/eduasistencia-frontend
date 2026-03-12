@@ -73,6 +73,9 @@ export interface ReportFilters {
     to_date: string;
     grade?: string;
     section?: string;
+    search?: string;
+    status?: string;
+    schedule_id?: number;
 }
 
 const API_URL = import.meta.env.VITE_API_BASE_URL;
@@ -81,18 +84,26 @@ export const BASE_URL = API_URL ? API_URL.replace('/api', '') : '';
 export const getStudentPhotoUrl = (photoUrl?: string) => {
     if (!photoUrl) return null;
 
-    // Si ya es una URL completa (http)
+    // 1. Si ya es una URL completa (http), la devolvemos tal cual
     if (photoUrl.startsWith('http')) {
         return photoUrl;
     }
 
-    // Asegurar que BASE_URL no termine en / y que photoUrl empiece con /
-    const cleanBase = BASE_URL.endsWith('/') ? BASE_URL.slice(0, -1) : BASE_URL;
-    const cleanPath = photoUrl.startsWith('/') ? photoUrl : `/${photoUrl}`;
+    // 2. Si ya es una ruta de la API (proxy firmado desde el backend)
+    // Solo le anteponemos la BASE_URL (http://localhost:8000)
+    if (photoUrl.startsWith('/api/') || photoUrl.startsWith('api/')) {
+        const cleanBase = BASE_URL.endsWith('/') ? BASE_URL.slice(0, -1) : BASE_URL;
+        const cleanPath = photoUrl.startsWith('/') ? photoUrl : `/${photoUrl}`;
+        return `${cleanBase}${cleanPath}`;
+    }
 
-    const finalUrl = `${cleanBase}${cleanPath}`;
-    // console.log('DEBUG PHOTO URL:', finalUrl); // Descomentar para depurar en consola del navegador
-    return finalUrl;
+    // 3. Si es una key cruda (fallback), usamos el proxy localmente
+    const token = localStorage.getItem('token');
+    const cleanApiUrl = API_URL?.endsWith('/') ? API_URL.slice(0, -1) : API_URL;
+    const encodedKey = encodeURIComponent(photoUrl);
+    const authParam = token ? `&token=${encodeURIComponent(token)}` : '';
+    
+    return `${cleanApiUrl}/students/photo-proxy?key=${encodedKey}${authParam}`;
 };
 
 if (!API_URL) {
@@ -192,7 +203,15 @@ export const updateJustificationStatus = async (id: number, status: string) => {
 
 // Reports
 export const exportAttendanceReport = async (filters: ReportFilters) => {
-    const params = new URLSearchParams(filters as unknown as Record<string, string>).toString();
+    // Filtrar valores nulos, indefinidos o cadenas vacías para que no aparezcan en la URL (evitar search=undefined)
+    const cleanFilters: Record<string, string> = {};
+    Object.entries(filters).forEach(([key, value]) => {
+        if (value !== undefined && value !== null && value !== '' && value !== 'undefined') {
+            cleanFilters[key] = String(value);
+        }
+    });
+
+    const params = new URLSearchParams(cleanFilters).toString();
     const response = await api.get(`/reports/attendance/export?${params}`, {
         responseType: 'blob',
     });
@@ -348,6 +367,30 @@ export const loginTelegram = async (data: {
 }) => {
     const response = await api.post('/settings/telegram/login', data);
     return response.data;
+};
+
+// Users & Profile
+export interface AdminUser {
+    id: number;
+    username: string;
+    full_name: string | null;
+    email: string | null;
+    is_active: boolean;
+    is_superuser: boolean;
+}
+
+export const getCurrentUser = async () => {
+    const response = await api.get('/users/me');
+    return response.data as AdminUser;
+};
+
+export const updateCurrentUser = async (data: {
+    username?: string;
+    full_name?: string;
+    password?: string;
+}) => {
+    const response = await api.put('/users/me', data);
+    return response.data as AdminUser;
 };
 
 export default api;

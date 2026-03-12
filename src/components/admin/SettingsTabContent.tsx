@@ -29,59 +29,92 @@ const SettingsTab: React.FC<SettingsTabProps> = ({
     onCancelEdit
 }) => {
     return (
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
-            <div className="bg-white dark:bg-slate-900 p-6 rounded-xl border border-slate-200 dark:border-slate-800 shadow-sm">
-                <h3 className="text-lg font-bold mb-4">
-                    {editingScheduleId ? 'Editar Horario' : 'Gestión de Horarios'}
-                </h3>
-                <form onSubmit={onCreateSchedule} className="space-y-4">
-                    <div>
-                        <label className="block text-sm font-medium mb-1">Nombre del Horario (ej: Mañana)</label>
-                        <input className="w-full px-4 py-2 rounded-lg border dark:border-slate-700 bg-white dark:bg-slate-800" value={newScheduleName} onChange={e => setNewScheduleName(e.target.value)} required />
-                    </div>
-                    <div className="grid grid-cols-2 gap-4">
-                        <div>
-                            <label className="block text-sm font-medium mb-1">Hora de Entrada</label>
-                            <input type="time" className="w-full px-4 py-2 rounded-lg border dark:border-slate-700 bg-white dark:bg-slate-800" value={newScheduleStart} onChange={e => setNewScheduleStart(e.target.value)} required />
-                        </div>
-                        <div>
-                            <label className="block text-sm font-medium mb-1">Hora de Salida</label>
-                            <input type="time" className="w-full px-4 py-2 rounded-lg border dark:border-slate-700 bg-white dark:bg-slate-800" value={newScheduleEnd} onChange={e => setNewScheduleEnd(e.target.value)} required />
-                        </div>
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-10">
+            <div className="bg-white/60 dark:bg-slate-900/60 backdrop-blur-3xl p-8 lg:p-10 rounded-[3rem] border border-white dark:border-slate-800 shadow-[0_40px_80px_-20px_rgba(0,0,0,0.08)] group">
+                <div className="flex items-center gap-4 mb-10">
+                    <div className="w-12 h-12 bg-primary/10 rounded-2xl flex items-center justify-center text-primary">
+                        <span className="material-icons-outlined text-3xl">more_time</span>
                     </div>
                     <div>
-                        <label className="block text-sm font-medium mb-1">Tolerancia (minutos)</label>
-                        <input type="number" className="w-full px-4 py-2 rounded-lg border dark:border-slate-700 bg-white dark:bg-slate-800" value={newScheduleTolerance} onChange={e => setNewScheduleTolerance(e.target.value)} required />
+                        <h3 className="text-2xl font-black text-slate-900 dark:text-white tracking-tighter leading-none mb-1">
+                            {editingScheduleId ? 'Editar Horario' : 'Nuevo Horario'}
+                        </h3>
+                        <p className="text-[10px] font-black uppercase tracking-[0.2em] text-slate-400">Configuración de turnos</p>
                     </div>
-                    <div className="flex gap-2">
-                        <button type="submit" className="flex-1 py-2 bg-primary text-white rounded-lg font-medium">
-                            {editingScheduleId ? 'Guardar Cambios' : 'Crear Horario'}
+                </div>
+
+                <form onSubmit={onCreateSchedule} className="space-y-8">
+                    <div className="space-y-3">
+                        <p className="text-[9px] font-black text-slate-400 uppercase tracking-[0.3em] ml-1">Identificador del Turno</p>
+                        <input className="w-full px-6 py-4 rounded-2xl bg-white/50 dark:bg-slate-800 border-none outline-none focus:ring-4 focus:ring-primary/20 transition-all font-bold text-sm" value={newScheduleName} onChange={e => setNewScheduleName(e.target.value)} required placeholder="EJ: TURNO MAÑANA" />
+                    </div>
+                    
+                    <div className="grid grid-cols-2 gap-6">
+                        <div className="space-y-3">
+                            <p className="text-[9px] font-black text-slate-400 uppercase tracking-[0.3em] ml-1">Hora Entrada</p>
+                            <input type="time" className="w-full px-6 py-4 rounded-2xl bg-white/50 dark:bg-slate-800 border-none outline-none focus:ring-4 focus:ring-primary/20 transition-all font-black text-sm" value={newScheduleStart} onChange={e => setNewScheduleStart(e.target.value)} required />
+                        </div>
+                        <div className="space-y-3">
+                            <p className="text-[9px] font-black text-slate-400 uppercase tracking-[0.3em] ml-1">Hora Salida</p>
+                            <input type="time" className="w-full px-6 py-4 rounded-2xl bg-white/50 dark:bg-slate-800 border-none outline-none focus:ring-4 focus:ring-primary/20 transition-all font-black text-sm" value={newScheduleEnd} onChange={e => setNewScheduleEnd(e.target.value)} required />
+                        </div>
+                    </div>
+
+                    <div className="space-y-3">
+                        <p className="text-[9px] font-black text-slate-400 uppercase tracking-[0.3em] ml-1">Margen de Tolerancia (Minutos)</p>
+                        <div className="relative">
+                            <input type="number" className="w-full px-6 py-4 rounded-2xl bg-white/50 dark:bg-slate-800 border-none outline-none focus:ring-4 focus:ring-primary/20 transition-all font-black text-sm" value={newScheduleTolerance} onChange={e => setNewScheduleTolerance(e.target.value)} required placeholder="0" />
+                            <span className="absolute right-6 top-1/2 -translate-y-1/2 font-black text-[10px] uppercase text-slate-400 opacity-50">MIN</span>
+                        </div>
+                    </div>
+
+                    <div className="flex gap-4 pt-4">
+                        <button type="submit" className="flex-1 py-4 bg-primary text-white rounded-2xl font-black uppercase tracking-[0.3em] text-[10px] shadow-lg shadow-primary/20 active:scale-95 transition-all">
+                            {editingScheduleId ? 'Actualizar' : 'Crear Turno'}
                         </button>
                         {editingScheduleId && (
-                            <button type="button" onClick={onCancelEdit} className="px-4 py-2 bg-slate-200 dark:bg-slate-700 rounded-lg font-medium">
+                            <button type="button" onClick={onCancelEdit} className="px-8 py-4 bg-slate-100 dark:bg-slate-800 text-slate-500 rounded-2xl font-black uppercase tracking-widest text-[10px] active:scale-95 transition-all">
                                 Cancelar
                             </button>
                         )}
                     </div>
                 </form>
             </div>
-            <div className="bg-white dark:bg-slate-900 p-6 rounded-xl border border-slate-200 dark:border-slate-800 shadow-sm">
-                <h3 className="text-lg font-bold mb-4">Horarios Existentes</h3>
-                <div className="space-y-3">
+
+            <div className="bg-white/60 dark:bg-slate-900/60 backdrop-blur-3xl p-8 lg:p-10 rounded-[3rem] border border-white dark:border-slate-800 shadow-[0_40px_80px_-20px_rgba(0,0,0,0.08)]">
+                <div className="flex items-center gap-4 mb-10">
+                    <div className="w-12 h-12 bg-emerald-500/10 rounded-2xl flex items-center justify-center text-emerald-500">
+                        <span className="material-icons-outlined text-3xl">event_available</span>
+                    </div>
+                    <div>
+                        <h3 className="text-2xl font-black text-slate-900 dark:text-white tracking-tighter leading-none mb-1">
+                            Turnos Activos
+                        </h3>
+                        <p className="text-[10px] font-black uppercase tracking-[0.2em] text-slate-400">Base de datos institucional</p>
+                    </div>
+                </div>
+
+                <div className="space-y-4">
                     {schedules.map(s => (
-                        <div key={s.id} className="p-3 bg-slate-50 dark:bg-slate-800 rounded-lg flex justify-between items-center group">
-                            <div>
-                                <p className="font-bold">{s.name}</p>
-                                <p className="text-xs text-slate-500">
-                                    {s.start_time} - {s.end_time || 'N/A'} (Tol: {s.tolerance_minutes}m)
-                                </p>
+                        <div key={s.id} className="p-6 bg-white/50 dark:bg-slate-800/40 border border-slate-100 dark:border-slate-800 rounded-[2rem] flex justify-between items-center group transition-all hover:bg-white dark:hover:bg-slate-800 hover:shadow-xl hover:shadow-black/5">
+                            <div className="flex items-center gap-5">
+                                <div className="w-2 h-10 rounded-full bg-primary/20 group-hover:bg-primary transition-colors"></div>
+                                <div>
+                                    <p className="font-black text-slate-900 dark:text-white uppercase text-xs tracking-widest mb-1">{s.name}</p>
+                                    <div className="flex items-center gap-3">
+                                        <span className="material-icons text-[10px] text-primary">schedule</span>
+                                        <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest">
+                                            {s.start_time} - {s.end_time || '--:--'} <span className="mx-2 opacity-20">|</span> Tol: {s.tolerance_minutes}m
+                                        </p>
+                                    </div>
+                                </div>
                             </div>
                             <button
                                 onClick={() => onEditSchedule(s)}
-                                className="p-2 text-indigo-500 hover:bg-slate-200 dark:hover:bg-slate-700 rounded-lg transition-colors lg:opacity-0 lg:group-hover:opacity-100"
+                                className="w-10 h-10 flex items-center justify-center text-primary bg-primary/10 dark:bg-primary/5 rounded-xl transition-all hover:bg-primary hover:text-white lg:opacity-0 lg:group-hover:opacity-100"
                                 title="Editar Horario"
                             >
-                                <span className="material-icons-outlined text-xl">edit</span>
+                                <span className="material-icons-outlined text-lg">edit</span>
                             </button>
                         </div>
                     ))}

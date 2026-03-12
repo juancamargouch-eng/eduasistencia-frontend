@@ -25,6 +25,7 @@ const CameraCapture: React.FC<CameraCaptureProps> = ({
                     ref={webcamRef}
                     screenshotFormat="image/jpeg"
                     className="w-full h-full object-cover"
+                    mirrored={true}
                     videoConstraints={{
                         facingMode: "environment",
                         aspectRatio: 0.75

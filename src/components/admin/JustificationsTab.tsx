@@ -17,6 +17,7 @@ interface JustificationsTabProps {
     justifications: Justification[];
     onSearchAbsences: () => void;
     onJustify: (date: string) => void;
+    onUpdateStatus: (id: number, status: string) => void;
 }
 
 const JustificationsTab: React.FC<JustificationsTabProps> = ({
@@ -26,7 +27,8 @@ const JustificationsTab: React.FC<JustificationsTabProps> = ({
     absences,
     justifications,
     onSearchAbsences,
-    onJustify
+    onJustify,
+    onUpdateStatus
 }) => {
     return (
         <div className="space-y-8">
@@ -112,6 +114,7 @@ const JustificationsTab: React.FC<JustificationsTabProps> = ({
                             <th className="px-6 py-4">Fecha</th>
                             <th className="px-6 py-4">Motivo</th>
                             <th className="px-6 py-4">Estado</th>
+                            <th className="px-6 py-4 text-right">Acciones</th>
                         </tr>
                     </thead>
                     <tbody className="divide-y divide-slate-100 dark:divide-slate-800">
@@ -130,6 +133,26 @@ const JustificationsTab: React.FC<JustificationsTabProps> = ({
                                         }`}>
                                         {j.status === 'APPROVED' ? 'APROBADO' : j.status === 'REJECTED' ? 'RECHAZADO' : 'PENDIENTE'}
                                     </span>
+                                </td>
+                                <td className="px-6 py-4 text-right">
+                                    {j.status === 'PENDING' && (
+                                        <div className="flex justify-end gap-2">
+                                            <button 
+                                                onClick={() => onUpdateStatus?.(j.id, 'APPROVED')}
+                                                className="p-1.5 bg-green-50 text-green-600 hover:bg-green-600 hover:text-white rounded-lg transition-all"
+                                                title="Aprobar"
+                                            >
+                                                <span className="material-icons text-sm">check</span>
+                                            </button>
+                                            <button 
+                                                onClick={() => onUpdateStatus?.(j.id, 'REJECTED')}
+                                                className="p-1.5 bg-red-50 text-red-600 hover:bg-red-600 hover:text-white rounded-lg transition-all"
+                                                title="Rechazar"
+                                            >
+                                                <span className="material-icons text-sm">close</span>
+                                            </button>
+                                        </div>
+                                    )}
                                 </td>
                             </tr>
                         ))}

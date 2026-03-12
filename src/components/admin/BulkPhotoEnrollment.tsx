@@ -91,7 +91,7 @@ const BulkPhotoEnrollment: React.FC<BulkPhotoEnrollmentProps> = ({ onComplete })
     };
 
     return (
-        <Card title="Enrolamiento Masivo de Fotos" icon="photo_library" description="Sube fotos nombradas con el DNI del alumno (Ej: 12345678.jpg)">
+        <Card title="Enrolamiento Masivo de Fotos" icon="photo_library" description="Sube fotos nombradas con el DNI o CE del alumno (Ej: 12345678.jpg, 00123456789.jpg)">
             <div className="space-y-6">
                 <div className="flex flex-col items-center justify-center border-2 border-dashed border-slate-200 dark:border-slate-800 rounded-3xl p-10 bg-slate-50 dark:bg-slate-800/20">
                     <span className="material-icons-outlined text-5xl text-slate-300 mb-4">cloud_upload</span>

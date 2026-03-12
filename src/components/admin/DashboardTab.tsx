@@ -27,11 +27,15 @@ interface DashboardTabProps {
 const DashboardTab: React.FC<DashboardTabProps> = ({ logs, occupancy }) => {
     const [stats, setStats] = useState<MonthlyStats | null>(null);
     const [loading, setLoading] = useState(true);
-    const [areaWidth, setAreaWidth] = useState(0);
-    const [barWidth, setBarWidth] = useState(0);
+    const [showCharts, setShowCharts] = useState(false);
 
     const areaRef = useRef<HTMLDivElement>(null);
     const barRef = useRef<HTMLDivElement>(null);
+
+    useEffect(() => {
+        const timer = setTimeout(() => setShowCharts(true), 1000);
+        return () => clearTimeout(timer);
+    }, []);
 
     useEffect(() => {
         const fetchStats = async () => {
@@ -47,21 +51,6 @@ const DashboardTab: React.FC<DashboardTabProps> = ({ logs, occupancy }) => {
         fetchStats();
     }, []);
 
-    useEffect(() => {
-        const observer = new ResizeObserver((entries) => {
-            for (const entry of entries) {
-                const width = entry.contentRect.width;
-                if (width > 0) {
-                    if (entry.target === areaRef.current) setAreaWidth(width);
-                    if (entry.target === barRef.current) setBarWidth(width);
-                }
-            }
-        });
-        if (areaRef.current) observer.observe(areaRef.current);
-        if (barRef.current) observer.observe(barRef.current);
-        return () => observer.disconnect();
-    }, []);
-
     const containerVariants = {
         hidden: { opacity: 0, y: 20 },
         visible: { opacity: 1, y: 0, transition: { duration: 0.6, staggerChildren: 0.1 } }
@@ -70,44 +59,57 @@ const DashboardTab: React.FC<DashboardTabProps> = ({ logs, occupancy }) => {
     return (
         <motion.div initial="hidden" animate="visible" variants={containerVariants} className="space-y-10 pb-10">
             {/* Header */}
-            <div className="flex flex-col sm:flex-row sm:items-end justify-between gap-4">
+            <div className="flex flex-col sm:flex-row sm:items-end justify-between gap-6">
                 <div>
-                    <h1 className="text-2xl sm:text-4xl font-black text-slate-800 dark:text-white tracking-tighter">Panel de Control</h1>
-                    <p className="text-xs sm:text-slate-500 font-medium italic mt-1">Análisis inteligente del rendimiento institucional</p>
+                    <h1 className="text-3xl sm:text-5xl font-black text-slate-900 dark:text-white tracking-tighter select-none">Panel VerifID</h1>
+                    <p className="text-[10px] sm:text-xs font-black text-slate-400 dark:text-slate-500 uppercase tracking-[0.3em] mt-3 flex items-center gap-2">
+                        <span className="w-4 h-[1px] bg-primary"></span>
+                        Gestión Biométrica Centralizada
+                    </p>
                 </div>
-                <div className="hidden xs:block px-5 py-2 bg-indigo-50 dark:bg-indigo-500/10 rounded-2xl border border-indigo-100 dark:border-indigo-500/20 max-w-fit">
-                    <span className="text-[10px] font-black text-indigo-600 dark:text-indigo-400 uppercase tracking-widest">Estado del Sistema</span>
+                <div className="hidden xs:block px-6 py-3 bg-emerald-50 dark:bg-emerald-500/10 rounded-2xl border border-emerald-100 dark:border-emerald-500/20 shadow-sm">
+                    <span className="text-[9px] font-black text-emerald-600 dark:text-emerald-400 uppercase tracking-widest block mb-1">Estado en Tiempo Real</span>
                     <div className="flex items-center gap-2">
-                        <span className="w-2 h-2 rounded-full bg-green-500 animate-pulse"></span>
-                        <span className="text-sm font-bold text-slate-700 dark:text-slate-300">Sincronizado</span>
+                        <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></span>
+                        <span className="text-sm font-black text-slate-800 dark:text-slate-200 tracking-tight">Vincular Activo</span>
                     </div>
                 </div>
             </div>
 
             {/* Metrics */}
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-                <MetricCard icon="login" label="Accesos Hoy" value={logs.length} subValue={`${occupancy.entries} totales`} color="blue" delay={0} />
-                <MetricCard icon="meeting_room" label="En Campus" value={occupancy.current_occupancy} subValue="Aforo actual" color="indigo" delay={0.1} />
-                <MetricCard icon="assignment_turned_in" label="Puntualidad" value={stats?.summary.avg_punctuality ? `${stats.summary.avg_punctuality}%` : '--'} subValue="Promedio mensual" color="green" delay={0.2} />
-                <MetricCard icon="trending_up" label="Tendencia" value={stats?.summary.trend || '--'} subValue="Rendimiento" color="amber" delay={0.3} />
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8">
+                <MetricCard icon="login" label="Ingresos Hoy" value={logs.length} subValue={`${occupancy.entries} Registrados`} color="blue" delay={0} />
+                <MetricCard icon="meeting_room" label="Aforo Actual" value={occupancy.current_occupancy} subValue="Estudiantes en campus" color="indigo" delay={0.1} />
+                <MetricCard icon="assignment_turned_in" label="Puntualidad" value={stats?.summary.avg_punctuality ? `${stats.summary.avg_punctuality}%` : '--'} subValue="Promedio del Mes" color="green" delay={0.2} />
+                <MetricCard icon="trending_up" label="Rendimiento" value={stats?.summary.trend || '--'} subValue="Tendencia de Asistencia" color="amber" delay={0.3} />
             </div>
 
             {/* Charts Section */}
-            <div className="grid grid-cols-1 xl:grid-cols-12 gap-6 sm:gap-8">
-                <div className="xl:col-span-8 bg-white dark:bg-slate-900 rounded-3xl sm:rounded-[3rem] p-6 sm:p-10 border border-slate-100 dark:border-slate-800 shadow-xl relative overflow-hidden">
-                    <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 sm:gap-6 mb-6 sm:mb-10">
-                        <h3 className="text-xl sm:text-2xl font-black text-slate-800 dark:text-white flex items-center gap-3">
-                            <span className="material-icons-outlined text-indigo-500">show_chart</span>Tendencia
-                        </h3>
+            <div className="grid grid-cols-1 xl:grid-cols-12 gap-8 sm:gap-10">
+                <div className="xl:col-span-8 min-w-0 bg-white/60 dark:bg-slate-900/60 backdrop-blur-3xl rounded-[3rem] p-8 sm:p-12 border border-white dark:border-slate-800 shadow-[0_40px_80px_-20px_rgba(0,0,0,0.08)] relative overflow-hidden group">
+                    <div className="flex flex-col md:flex-row md:items-center justify-between gap-6 mb-12">
+                        <div>
+                            <p className="text-[9px] font-black text-primary uppercase tracking-[0.3em] mb-2">Visualización de Datos</p>
+                            <h3 className="text-2xl sm:text-3xl font-black text-slate-900 dark:text-white flex items-center gap-4 tracking-tighter">
+                                <span className="material-icons-outlined text-primary bg-primary/10 p-2 rounded-xl">show_chart</span>
+                                Tendencia Diaria
+                            </h3>
+                        </div>
                     </div>
-                    <div ref={areaRef} className="h-64 sm:h-auto"><AttendanceChart data={stats?.daily || []} width={areaWidth} loading={loading} /></div>
+                    <div ref={areaRef} className="h-[350px] sm:h-[400px] min-w-0 relative">
+                        {showCharts && <AttendanceChart data={stats?.daily || []} loading={loading} />}
+                    </div>
                 </div>
 
-                <div className="xl:col-span-4 bg-white dark:bg-slate-900 rounded-3xl sm:rounded-[3rem] p-6 sm:p-10 border border-slate-100 dark:border-slate-800 shadow-xl">
-                    <h3 className="text-xl sm:text-2xl font-black text-slate-800 dark:text-white flex items-center gap-3 mb-6 sm:mb-10">
-                        <span className="material-icons-outlined text-green-500">bar_chart</span>Por Grado
+                <div className="xl:col-span-4 min-w-0 bg-white/60 dark:bg-slate-900/60 backdrop-blur-3xl rounded-[3rem] p-8 sm:p-12 border border-white dark:border-slate-800 shadow-[0_40px_80px_-20px_rgba(0,0,0,0.08)] group">
+                    <p className="text-[9px] font-black text-primary uppercase tracking-[0.3em] mb-2">Desglose Académico</p>
+                    <h3 className="text-2xl sm:text-3xl font-black text-slate-900 dark:text-white flex items-center gap-4 tracking-tighter mb-12">
+                        <span className="material-icons-outlined text-primary bg-primary/10 p-2 rounded-xl">bar_chart</span>
+                        Por Grado
                     </h3>
-                    <div ref={barRef} className="h-64 sm:h-auto"><GradeBarChart data={stats?.grades || []} width={barWidth} loading={loading} /></div>
+                    <div ref={barRef} className="h-[350px] sm:h-[400px] min-w-0 relative">
+                        {showCharts && <GradeBarChart data={stats?.grades || []} loading={loading} />}
+                    </div>
                 </div>
             </div>
 

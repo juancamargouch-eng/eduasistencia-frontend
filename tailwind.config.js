@@ -7,12 +7,12 @@ export default {
     theme: {
         extend: {
             colors: {
-                "primary": "#135bec",
+                "primary": "#e10521",
                 "background-light": "#f6f6f8",
                 "background-dark": "#101622",
             },
             fontFamily: {
-                "display": ["Lexend", "sans-serif"]
+                "display": ["Inter", "sans-serif"]
             },
             borderRadius: {
                 "lg": "0.5rem",

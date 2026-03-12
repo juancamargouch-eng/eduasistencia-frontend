@@ -48,12 +48,12 @@ const StudentEditForm: React.FC<StudentEditFormProps> = ({ data, onChange, sched
             </div>
 
             <Input
-                label="DNI"
+                label="DNI / CE"
                 icon="badge"
-                maxLength={8}
+                maxLength={12}
                 value={data.dni}
                 onChange={e => onChange('dni', e.target.value.replace(/\D/g, ''))}
-                placeholder="00000000"
+                placeholder="8-12 DÍGITOS"
                 className="font-mono"
             />
 

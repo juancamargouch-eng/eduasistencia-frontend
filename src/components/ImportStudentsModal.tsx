@@ -148,8 +148,8 @@ const ImportStudentsModal: React.FC<ImportStudentsModalProps> = ({ onClose, onIm
                         <div className="bg-blue-50 dark:bg-blue-500/5 p-5 rounded-2xl border border-blue-100 dark:border-blue-500/20 text-sm">
                             <p className="font-black text-blue-700 dark:text-blue-400 uppercase tracking-widest text-[10px] mb-2">Instrucciones de Seguridad</p>
                             <ul className="space-y-2 text-slate-600 dark:text-slate-300 font-medium leading-relaxed">
-                                <li className="flex gap-2"><span className="text-blue-500">●</span> Sube un Excel (.xlsx) con Apellidos, Nombres, Grado, Sección y DNI.</li>
-                                <li className="flex gap-2"><span className="text-blue-500">●</span> <strong className="text-blue-700 dark:text-blue-300">Smart Sync:</strong> Buscaremos fotos en S3 que se llamen como el DNI.</li>
+                                <li className="flex gap-2"><span className="text-blue-500">●</span> Sube un Excel (.xlsx) con Apellidos, Nombres, Grado, Sección y DNI / CE.</li>
+                                <li className="flex gap-2"><span className="text-blue-500">●</span> <strong className="text-blue-700 dark:text-blue-300">Smart Sync:</strong> Buscaremos fotos en S3 que se llamen como el DNI o CE.</li>
                                 <li className="flex gap-2"><span className="text-blue-500">●</span> Las fotos se jalarán de forma privada y segura para procesar la IA.</li>
                             </ul>
                         </div>

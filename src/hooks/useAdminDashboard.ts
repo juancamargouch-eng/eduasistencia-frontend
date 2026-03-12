@@ -7,13 +7,14 @@ import * as faceapi from 'face-api.js';
 import {
     registerStudent, getAttendanceLogs, getStudents, getSchedules,
     getJustifications, getOccupancyStats, createSchedule, updateSchedule,
+    updateJustificationStatus,
     type Student, type AttendanceLog, type Justification, type Schedule
 } from '../services/api';
 import { useAdminWebSocket } from './useAdminWebSocket';
 import { type TabName } from '../components/admin/Sidebar';
 import { type DailyAttendanceResponse } from '../components/admin/DailyAttendanceTab';
 import { type Absense } from '../components/admin/JustificationsTab';
-import { getDailyAttendance, exportAttendanceReport } from '../services/api';
+import { getDailyAttendance, exportAttendanceReport, getStudentAbsences } from '../services/api';
 
 export const useAdminDashboard = () => {
     const webcamRef = useRef<Webcam>(null);
@@ -49,7 +50,15 @@ export const useAdminDashboard = () => {
         stats: null as DailyAttendanceResponse | null,
         loading: false
     });
-    const [reportFilters, setReportFilters] = useState({ from: '', to: '', grade: '', section: '' });
+    const [reportFilters, setReportFilters] = useState({ 
+        from: '', 
+        to: '', 
+        grade: '', 
+        section: '',
+        search: '',
+        status: '',
+        scheduleId: '' as string | number
+    });
     const [justifState, setJustifState] = useState({ studentId: '', absences: [] as Absense[], studentData: null as Student | null, selectedAbsence: null as string | null, showModal: false, loading: false });
     const [schForm, setSchForm] = useState({ name: '', start: '', end: '', tolerance: '0' });
     const [editingScheduleId, setEditingScheduleId] = useState<number | null>(null);
@@ -62,7 +71,12 @@ export const useAdminDashboard = () => {
     const refreshAnalytics = useCallback(async () => {
         try {
             const [l, o] = await Promise.all([getAttendanceLogs(), getOccupancyStats()]);
-            setLogs(l); setOccupancy(o);
+            setLogs(l); 
+            setOccupancy({
+                entries: o.total_entries,
+                exits: o.total_exits,
+                current_occupancy: o.current_count
+            });
         } catch (e) { console.error(e); }
     }, []);
 
@@ -211,6 +225,43 @@ export const useAdminDashboard = () => {
         } finally { setLoading(false); }
     };
 
+    const handleSearchAbsences = async () => {
+        if (justifState.studentId.length < 8) return;
+        setJustifState(p => ({ ...p, loading: true, absences: [], studentData: null }));
+        try {
+            const data = await getStudentAbsences(justifState.studentId);
+            setJustifState(p => ({ 
+                ...p, 
+                absences: data.absences, 
+                studentData: data.student,
+                loading: false 
+            }));
+        } catch (error) {
+            console.error(error);
+            toast.error("No se pudo encontrar al estudiante o sus inasistencias");
+            setJustifState(p => ({ ...p, loading: false }));
+        }
+    };
+
+    const handleJustifySuccess = () => {
+        fetchData(); // Refresh global justifications list
+        handleSearchAbsences(); // Refresh current student's absences list
+    };
+
+    const handleUpdateJustificationStatus = async (id: number, status: string) => {
+        setLoading(true);
+        try {
+            await updateJustificationStatus(id, status);
+            toast.success(`Estado de justificación actualizado a ${status === 'APPROVED' ? 'APROBADO' : 'RECHAZADO'}`);
+            fetchData();
+        } catch (error) {
+            console.error(error);
+            toast.error("Error al actualizar el estado");
+        } finally {
+            setLoading(false);
+        }
+    };
+
     const handleExportReport = async () => {
         if (!reportFilters.from || !reportFilters.to) {
             return toast.error("Seleccione un rango de fechas");
@@ -221,7 +272,10 @@ export const useAdminDashboard = () => {
                 from_date: reportFilters.from,
                 to_date: reportFilters.to,
                 grade: reportFilters.grade || undefined,
-                section: reportFilters.section || undefined
+                section: reportFilters.section || undefined,
+                search: reportFilters.search || undefined,
+                status: reportFilters.status || undefined,
+                schedule_id: reportFilters.scheduleId ? Number(reportFilters.scheduleId) : undefined
             });
             const url = window.URL.createObjectURL(new Blob([blob]));
             const link = document.createElement('a');
@@ -247,6 +301,6 @@ export const useAdminDashboard = () => {
         selectedStudent, setSelectedStudent, showImportModal, setShowImportModal,
         refreshAnalytics, fetchData, handleSubmitRegister,
         editingScheduleId, setEditingScheduleId, handleEditSchedule, handleSubmitSchedule,
-        handleExportReport
+        handleExportReport, handleSearchAbsences, handleJustifySuccess, handleUpdateJustificationStatus
     };
 };
