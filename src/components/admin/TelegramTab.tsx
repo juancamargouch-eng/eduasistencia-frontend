@@ -4,12 +4,21 @@ import { useStudents } from '../../hooks/useStudents';
 import TelegramAuthFlow from './telegram/TelegramAuthFlow';
 import StudentTelegramTable from './telegram/StudentTelegramTable';
 
-const TelegramTab: React.FC = () => {
+interface TelegramTabProps {
+    grades: string[];
+    sections: string[];
+}
+
+const TelegramTab: React.FC<TelegramTabProps> = ({ grades, sections }) => {
     const {
         loading,
         searchTerm,
         setSearchTerm,
+        pagination,
+        setPagination,
         filteredStudents,
+        filters,
+        setFilters,
         handleUpdateStudent,
         handleToggleNotify
     } = useStudents();
@@ -31,9 +40,26 @@ const TelegramTab: React.FC = () => {
             <StudentTelegramTable
                 students={filteredStudents}
                 searchTerm={searchTerm}
-                onSearchChange={setSearchTerm}
+                onSearchChange={(val: string) => {
+                    setSearchTerm(val);
+                    setPagination(p => ({ ...p, page: 0 }));
+                }}
                 onUpdateChatId={(student, chatId) => handleUpdateStudent(student.id, { telegram_chat_id: chatId })}
                 onToggleNotify={handleToggleNotify}
+                pagination={pagination}
+                onPageChange={(page: number) => setPagination(p => ({ ...p, page }))}
+                filterGrade={filters.grade}
+                setFilterGrade={(g: string) => {
+                    setFilters(prev => ({ ...prev, grade: g }));
+                    setPagination(p => ({ ...p, page: 0 }));
+                }}
+                filterSection={filters.section}
+                setFilterSection={(s: string) => {
+                    setFilters(prev => ({ ...prev, section: s }));
+                    setPagination(p => ({ ...p, page: 0 }));
+                }}
+                grades={grades}
+                sections={sections}
             />
         </motion.div>
     );

@@ -6,7 +6,9 @@ import { getMonthlyStats, type AttendanceLog } from '../../services/api';
 import MetricCard from './dashboard/MetricCard';
 import AttendanceChart, { type DailyStats } from './dashboard/AttendanceChart';
 import GradeBarChart, { type GradeStats } from './dashboard/GradeBarChart';
+import AttendancePercentageChart from './dashboard/AttendancePercentageChart';
 import LatestLogSummary from './dashboard/LatestLogSummary';
+import { type AttendancePercentageData } from '../../services/api';
 
 interface MonthlyStats {
     daily: DailyStats[];
@@ -20,11 +22,18 @@ interface MonthlyStats {
 
 interface DashboardTabProps {
     logs: AttendanceLog[];
-    occupancy: { entries: number; exits: number; current_occupancy: number };
+    occupancy: { total_entries: number; total_exits: number; current_count: number };
     onRefresh: () => void;
+    percentageData: AttendancePercentageData | null;
+    percentagePeriod: 'day' | 'week' | 'month';
+    setPercentagePeriod: (p: 'day' | 'week' | 'month') => void;
+    loadingPerc: boolean;
 }
 
-const DashboardTab: React.FC<DashboardTabProps> = ({ logs, occupancy }) => {
+const DashboardTab: React.FC<DashboardTabProps> = ({ 
+    logs, occupancy,
+    percentageData, percentagePeriod, setPercentagePeriod, loadingPerc
+}) => {
     const [stats, setStats] = useState<MonthlyStats | null>(null);
     const [loading, setLoading] = useState(true);
     const [showCharts, setShowCharts] = useState(false);
@@ -78,8 +87,8 @@ const DashboardTab: React.FC<DashboardTabProps> = ({ logs, occupancy }) => {
 
             {/* Metrics */}
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8">
-                <MetricCard icon="login" label="Ingresos Hoy" value={logs.length} subValue={`${occupancy.entries} Registrados`} color="blue" delay={0} />
-                <MetricCard icon="meeting_room" label="Aforo Actual" value={occupancy.current_occupancy} subValue="Estudiantes en campus" color="indigo" delay={0.1} />
+                <MetricCard icon="login" label="Ingresos Hoy" value={logs.length} subValue={`${occupancy.total_entries} Registrados`} color="blue" delay={0} />
+                <MetricCard icon="meeting_room" label="Aforo Actual" value={occupancy.current_count} subValue="Estudiantes en campus" color="indigo" delay={0.1} />
                 <MetricCard icon="assignment_turned_in" label="Puntualidad" value={stats?.summary.avg_punctuality ? `${stats.summary.avg_punctuality}%` : '--'} subValue="Promedio del Mes" color="green" delay={0.2} />
                 <MetricCard icon="trending_up" label="Rendimiento" value={stats?.summary.trend || '--'} subValue="Tendencia de Asistencia" color="amber" delay={0.3} />
             </div>
@@ -110,6 +119,11 @@ const DashboardTab: React.FC<DashboardTabProps> = ({ logs, occupancy }) => {
                     <div ref={barRef} className="h-[350px] sm:h-[400px] min-w-0 relative">
                         {showCharts && <GradeBarChart data={stats?.grades || []} loading={loading} />}
                     </div>
+                </div>
+
+                {/* Pie Chart: Porcentajes de Asistencia */}
+                <div className="xl:col-span-5 min-w-0 bg-white/60 dark:bg-slate-900/60 backdrop-blur-3xl rounded-[3rem] border border-white dark:border-slate-800 shadow-[0_40px_80px_-20px_rgba(0,0,0,0.08)] group overflow-hidden">
+                    {showCharts && <AttendancePercentageChart data={percentageData} period={percentagePeriod} onPeriodChange={setPercentagePeriod} loading={loadingPerc} />}
                 </div>
             </div>
 

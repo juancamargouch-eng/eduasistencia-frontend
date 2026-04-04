@@ -1,6 +1,8 @@
 import React from 'react';
-import type { Student, Justification } from '../../services/api';
 import { getStudentPhotoUrl } from '../../services/api';
+
+import { useJustificationsTab } from '../../hooks/tabs/useJustificationsTab';
+import JustificationModal from '../JustificationModal';
 
 export interface Absense {
     date: string;
@@ -8,28 +10,21 @@ export interface Absense {
     status: string;
 }
 
-interface JustificationsTabProps {
-    justificationStudentId: string;
-    setJustificationStudentId: (val: string) => void;
-    isLoadingAbsences: boolean;
-    justificationStudentData: Student | null;
-    absences: Absense[];
-    justifications: Justification[];
-    onSearchAbsences: () => void;
-    onJustify: (date: string) => void;
-    onUpdateStatus: (id: number, status: string) => void;
-}
-
-const JustificationsTab: React.FC<JustificationsTabProps> = ({
-    justificationStudentId, setJustificationStudentId,
-    isLoadingAbsences,
-    justificationStudentData,
-    absences,
-    justifications,
-    onSearchAbsences,
-    onJustify,
-    onUpdateStatus
-}) => {
+const JustificationsTab: React.FC = () => {
+    const {
+        justificationStudentId, setJustificationStudentId,
+        isLoadingAbsences,
+        justificationStudentData,
+        absences,
+        justifications,
+        handleSearchAbsences,
+        openModal,
+        closeModal,
+        showModal,
+        selectedAbsence,
+        handleUpdateStatus,
+        handleJustifySuccess
+    } = useJustificationsTab();
     return (
         <div className="space-y-8">
             <div className="bg-white dark:bg-slate-900 p-6 rounded-xl border border-slate-200 dark:border-slate-800 shadow-sm">
@@ -47,7 +42,7 @@ const JustificationsTab: React.FC<JustificationsTabProps> = ({
                                 className="w-full px-4 py-2 rounded-lg border dark:border-slate-700 bg-slate-50 dark:bg-slate-800"
                             />
                             <button
-                                onClick={onSearchAbsences}
+                                onClick={handleSearchAbsences}
                                 disabled={isLoadingAbsences || justificationStudentId.length < 8}
                                 className="px-3 py-2 bg-slate-200 dark:bg-slate-700 rounded-lg disabled:opacity-50"
                             >
@@ -90,7 +85,7 @@ const JustificationsTab: React.FC<JustificationsTabProps> = ({
                                         </div>
                                     </div>
                                     <button
-                                        onClick={() => onJustify(abs.date)}
+                                        onClick={() => openModal(abs.date)}
                                         className="w-full py-2 bg-slate-100 hover:bg-blue-600 hover:text-white rounded-lg transition-all text-sm font-medium"
                                     >
                                         Justificar
@@ -138,14 +133,14 @@ const JustificationsTab: React.FC<JustificationsTabProps> = ({
                                     {j.status === 'PENDING' && (
                                         <div className="flex justify-end gap-2">
                                             <button 
-                                                onClick={() => onUpdateStatus?.(j.id, 'APPROVED')}
+                                                onClick={() => handleUpdateStatus(j.id, 'APPROVED')}
                                                 className="p-1.5 bg-green-50 text-green-600 hover:bg-green-600 hover:text-white rounded-lg transition-all"
                                                 title="Aprobar"
                                             >
                                                 <span className="material-icons text-sm">check</span>
                                             </button>
                                             <button 
-                                                onClick={() => onUpdateStatus?.(j.id, 'REJECTED')}
+                                                onClick={() => handleUpdateStatus(j.id, 'REJECTED')}
                                                 className="p-1.5 bg-red-50 text-red-600 hover:bg-red-600 hover:text-white rounded-lg transition-all"
                                                 title="Rechazar"
                                             >
@@ -159,6 +154,16 @@ const JustificationsTab: React.FC<JustificationsTabProps> = ({
                     </tbody>
                 </table>
             </div>
+
+            {/* Modal anidado ahora internamente en lugar del parent AdminDashboard */}
+            {showModal && justificationStudentData && selectedAbsence && (
+                <JustificationModal 
+                    student={justificationStudentData} 
+                    absenceDate={selectedAbsence} 
+                    onClose={closeModal} 
+                    onSuccess={handleJustifySuccess} 
+                />
+            )}
         </div>
     );
 };

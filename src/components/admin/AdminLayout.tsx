@@ -3,7 +3,7 @@ import { toast } from 'sonner';
 import Sidebar, { type TabName } from './Sidebar';
 import AdminHeader from './AdminHeader';
 import ProfileEditModal from './ProfileEditModal';
-import { getCurrentUser, type AdminUser } from '../../services/api';
+import { getMe, type AdminUser } from '../../services/api';
 
 interface AdminLayoutProps {
     children: React.ReactNode;
@@ -18,7 +18,7 @@ const AdminLayout: React.FC<AdminLayoutProps> = ({ children, activeTab }) => {
 
     const loadUser = async () => {
         try {
-            const data = await getCurrentUser();
+            const data = await getMe();
             setUser(data);
         } catch (error: unknown) {
             console.error("Error al cargar datos del perfil", error);

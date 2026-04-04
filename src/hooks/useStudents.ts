@@ -1,4 +1,4 @@
-import { useState, useEffect, useMemo } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { toast } from 'sonner';
 import { getStudents, updateStudent, type Student } from '../services/api';
 
@@ -6,29 +6,32 @@ export const useStudents = () => {
     const [students, setStudents] = useState<Student[]>([]);
     const [loading, setLoading] = useState(true);
     const [searchTerm, setSearchTerm] = useState('');
+    const [filters, setFilters] = useState({ grade: '', section: '' });
+    const [pagination, setPagination] = useState({ page: 0, limit: 50, total: 0 });
 
-    const refreshStudents = async () => {
+    const refreshStudents = useCallback(async () => {
+        setLoading(true);
         try {
-            const data = await getStudents();
-            setStudents(data);
+            const skip = pagination.page * pagination.limit;
+            const data = await getStudents(skip, pagination.limit, filters.grade, filters.section, searchTerm);
+            setStudents(data.items);
+            setPagination(prev => ({ ...prev, total: data.total }));
         } catch (error) {
             console.error("Error loading students", error);
             toast.error("Error al cargar la lista de alumnos");
         } finally {
             setLoading(false);
         }
-    };
+    }, [pagination.page, pagination.limit, filters.grade, filters.section, searchTerm]);
 
     useEffect(() => {
-        refreshStudents();
-    }, []);
+        const timer = setTimeout(() => {
+            refreshStudents();
+        }, 300); // Debounce search
+        return () => clearTimeout(timer);
+    }, [refreshStudents]);
 
-    const filteredStudents = useMemo(() => {
-        return students.filter(s =>
-            s.full_name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-            s.dni?.includes(searchTerm)
-        );
-    }, [students, searchTerm]);
+    const filteredStudents = students; // Ya filtrados en servidor
 
     const handleUpdateStudent = async (id: number, data: Partial<Student>) => {
         try {
@@ -66,7 +69,11 @@ export const useStudents = () => {
         loading,
         searchTerm,
         setSearchTerm,
+        pagination,
+        setPagination,
         filteredStudents,
+        filters,
+        setFilters,
         refreshStudents,
         handleUpdateStudent,
         handleToggleNotify

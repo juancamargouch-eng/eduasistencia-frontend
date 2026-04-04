@@ -1,8 +1,12 @@
 import { createContext, useContext } from 'react';
+import type { ModulePermission } from '../utils/permissions';
 
 export interface AuthContextType {
     user: string | null;
     isSuperuser: boolean;
+    role: string | null;
+    permissions: ModulePermission[];
+    loading: boolean;
     login: (u: string, p: string) => Promise<void>;
     logout: () => void;
     isAuthenticated: boolean;

@@ -1,49 +1,27 @@
 import React from 'react';
 import { getStudentPhotoUrl, type Schedule } from '../../services/api';
 
-export interface DailyAttendanceResponse {
-    is_non_working_day?: boolean;
-    holiday_name?: string | null;
-    summary: {
-        present: number;
-        late: number;
-        absent: number;
-        total: number;
-    };
-    students: Array<{
-        id: number;
-        full_name: string;
-        photo_url?: string;
-        status: 'PRESENT' | 'LATE' | 'ABSENT' | string;
-        entry_time?: string | null;
-    }>;
-}
+import { useDailyAttendanceTab } from '../../hooks/tabs/useDailyAttendanceTab';
 
 interface DailyAttendanceTabProps {
-    dailyGrade: string;
-    setDailyGrade: (val: string) => void;
-    dailySection: string;
-    setDailySection: (val: string) => void;
-    dailyScheduleId: string | number;
-    setDailyScheduleId: (val: string | number) => void;
-    dailyDate: string;
-    setDailyDate: (val: string) => void;
-    dailyStats: DailyAttendanceResponse | null;
-    dailyLoading: boolean;
     grades: string[];
     sections: string[];
     schedules: Schedule[];
 }
 
 const DailyAttendanceTab: React.FC<DailyAttendanceTabProps> = ({
-    dailyGrade, setDailyGrade,
-    dailySection, setDailySection,
-    dailyScheduleId, setDailyScheduleId,
-    dailyDate, setDailyDate,
-    dailyStats,
-    dailyLoading,
     grades, sections, schedules
 }) => {
+    const {
+        dailyGrade, setDailyGrade,
+        dailySection, setDailySection,
+        dailyScheduleId, setDailyScheduleId,
+        dailyDate, setDailyDate,
+        dailyStats,
+        dailyLoading,
+        pagination,
+        setPagination
+    } = useDailyAttendanceTab();
 
     const attendanceRate = dailyStats && dailyStats.summary.total > 0
         ? Math.round(((dailyStats.summary.present + dailyStats.summary.late) / dailyStats.summary.total) * 100)
@@ -56,7 +34,7 @@ const DailyAttendanceTab: React.FC<DailyAttendanceTabProps> = ({
                 <div className="flex-1 min-w-[180px] space-y-3">
                     <label className="block text-[9px] font-black uppercase tracking-[0.3em] ml-1 text-slate-400 group-hover:text-primary transition-colors">Grado Académico</label>
                     <div className="relative">
-                        <select className="w-full px-5 py-4 rounded-2xl bg-white/50 dark:bg-slate-800 border-none outline-none focus:ring-4 focus:ring-primary/20 font-black text-xs tracking-tight transition-all appearance-none" value={dailyGrade} onChange={e => setDailyGrade(e.target.value)}>
+                        <select className="w-full px-5 py-4 rounded-2xl bg-white/50 dark:bg-slate-800 border-none outline-none focus:ring-4 focus:ring-primary/20 font-black text-xs tracking-tight transition-all appearance-none" value={dailyGrade} onChange={(e: React.ChangeEvent<HTMLSelectElement>) => setDailyGrade(e.target.value)}>
                             <option value="">Seleccionar Grado</option>
                             {grades.map(g => <option key={g} value={g}>{g}</option>)}
                         </select>
@@ -66,7 +44,7 @@ const DailyAttendanceTab: React.FC<DailyAttendanceTabProps> = ({
                 <div className="flex-1 min-w-[120px] space-y-3">
                     <label className="block text-[9px] font-black uppercase tracking-[0.3em] ml-1 text-slate-400">Sección</label>
                     <div className="relative">
-                        <select className="w-full px-5 py-4 rounded-2xl bg-white/50 dark:bg-slate-800 border-none outline-none focus:ring-4 focus:ring-primary/20 font-black text-xs tracking-tight transition-all appearance-none" value={dailySection} onChange={e => setDailySection(e.target.value)}>
+                        <select className="w-full px-5 py-4 rounded-2xl bg-white/50 dark:bg-slate-800 border-none outline-none focus:ring-4 focus:ring-primary/20 font-black text-xs tracking-tight transition-all appearance-none" value={dailySection} onChange={(e: React.ChangeEvent<HTMLSelectElement>) => setDailySection(e.target.value)}>
                             <option value="">Sección</option>
                             {sections.map(s => <option key={s} value={s}>{s}</option>)}
                         </select>
@@ -76,7 +54,7 @@ const DailyAttendanceTab: React.FC<DailyAttendanceTabProps> = ({
                 <div className="flex-[1.5] min-w-[200px] space-y-3">
                     <label className="block text-[9px] font-black uppercase tracking-[0.3em] ml-1 text-slate-400">Turno Operativo</label>
                     <div className="relative">
-                        <select className="w-full px-5 py-4 rounded-2xl bg-white/50 dark:bg-slate-800 border-none outline-none focus:ring-4 focus:ring-primary/20 font-black text-xs tracking-tight transition-all appearance-none" value={dailyScheduleId} onChange={e => setDailyScheduleId(e.target.value)}>
+                        <select className="w-full px-5 py-4 rounded-2xl bg-white/50 dark:bg-slate-800 border-none outline-none focus:ring-4 focus:ring-primary/20 font-black text-xs tracking-tight transition-all appearance-none" value={dailyScheduleId} onChange={(e: React.ChangeEvent<HTMLSelectElement>) => setDailyScheduleId(e.target.value)}>
                             <option value="">Todos los Turnos</option>
                             {schedules.map(sch => <option key={sch.id} value={sch.id}>{sch.name} [{sch.start_time}]</option>)}
                         </select>
@@ -85,7 +63,7 @@ const DailyAttendanceTab: React.FC<DailyAttendanceTabProps> = ({
                 </div>
                 <div className="flex-1 min-w-[200px] space-y-3">
                     <label className="block text-[9px] font-black uppercase tracking-[0.3em] ml-1 text-primary">Fecha de Auditoría</label>
-                    <input type="date" className="w-full px-5 py-4 rounded-2xl bg-white/50 dark:bg-slate-800 border-none outline-none focus:ring-4 focus:ring-primary/20 font-black text-xs tracking-widest transition-all" value={dailyDate} onChange={e => setDailyDate(e.target.value)} />
+                    <input type="date" className="w-full px-5 py-4 rounded-2xl bg-white/50 dark:bg-slate-800 border-none outline-none focus:ring-4 focus:ring-primary/20 font-black text-xs tracking-widest transition-all" value={dailyDate} onChange={(e: React.ChangeEvent<HTMLInputElement>) => setDailyDate(e.target.value)} />
                 </div>
             </div>
 
@@ -193,6 +171,34 @@ const DailyAttendanceTab: React.FC<DailyAttendanceTabProps> = ({
                                 </tbody>
                             </table>
                         </div>
+
+                        {/* Pagination Controls */}
+                        {pagination.total > pagination.limit && (
+                            <div className="p-8 border-t border-slate-100/50 dark:border-slate-800/50 flex items-center justify-between bg-slate-50/30 dark:bg-slate-800/20">
+                                <p className="text-[10px] font-black font-mono text-slate-400 uppercase tracking-widest">
+                                    Viendo {dailyStats.students.length} de {pagination.total} alumnos
+                                </p>
+                                <div className="flex gap-4">
+                                    <button
+                                        onClick={() => setPagination(p => ({ ...p, page: p.page - 1 }))}
+                                        disabled={pagination.page === 0}
+                                        className="flex items-center gap-2 px-8 py-3 rounded-2xl bg-white/50 dark:bg-slate-800 border-none outline-none focus:ring-4 focus:ring-primary/20 text-[10px] font-black uppercase tracking-widest hover:bg-primary hover:text-white disabled:opacity-20 disabled:hover:bg-white/50 disabled:hover:text-inherit transition-all shadow-lg"
+                                    >
+                                        <span className="material-icons text-sm">west</span> Anterior
+                                    </button>
+                                    <div className="flex items-center px-4 text-[10px] font-black uppercase tracking-[0.3em] text-primary select-none">
+                                        Página {pagination.page + 1}
+                                    </div>
+                                    <button
+                                        onClick={() => setPagination(p => ({ ...p, page: p.page + 1 }))}
+                                        disabled={(pagination.page + 1) * pagination.limit >= pagination.total}
+                                        className="flex items-center gap-2 px-8 py-3 rounded-2xl bg-white/50 dark:bg-slate-800 border-none outline-none focus:ring-4 focus:ring-primary/20 text-[10px] font-black uppercase tracking-widest hover:bg-primary hover:text-white disabled:opacity-20 disabled:hover:bg-white/50 disabled:hover:text-inherit transition-all shadow-lg"
+                                    >
+                                        Siguiente <span className="material-icons text-sm">east</span>
+                                    </button>
+                                </div>
+                            </div>
+                        )}
                     </div>
                 </div>
             ) : (

@@ -14,6 +14,15 @@ const Kiosk: React.FC = () => {
     const [ambientFace, setAmbientFace] = useState(false);
     const [showManual, setShowManual] = useState(false);
     const [manualDni, setManualDni] = useState('');
+    const [deviceId, setDeviceId] = useState(() => localStorage.getItem('kiosk_device_id') || 'Configurar Dispositivo');
+
+    const handleDeviceSetup = () => {
+        const newId = prompt("Ingrese el identificador para este Kiosko (ej. 'Tablet Entrada Principal'):", deviceId);
+        if (newId && newId.trim() !== '') {
+            localStorage.setItem('kiosk_device_id', newId.trim());
+            setDeviceId(newId.trim());
+        }
+    };
 
     const { status, message, subMessage, lastStudent, eventType, handleVerification } = useKioskLogic(webcamRef, () => {
         setManualDni('');
@@ -71,9 +80,9 @@ const Kiosk: React.FC = () => {
                     <div className="flex items-center gap-6">
                         <img src="/logo_eduasistencia.png" alt="EduAsistencia Logo" className="h-10 lg:h-14 w-auto brightness-0 invert" />
                         <div className="h-8 w-px bg-white/20 hidden md:block"></div>
-                        <div className="hidden md:flex flex-col">
+                        <div className="hidden md:flex flex-col cursor-pointer hover:opacity-80 transition-opacity" onDoubleClick={handleDeviceSetup} title="Doble clic para configurar ID del Kiosko">
                             <span className="text-white font-black text-sm tracking-tighter leading-none">VerifID</span>
-                            <span className="text-white/60 text-[8px] font-black uppercase tracking-[0.2em]">Control Biométrico</span>
+                            <span className="text-white/80 text-[9px] font-black uppercase tracking-[0.2em] mt-0.5 max-w-[150px] truncate">{deviceId}</span>
                         </div>
                     </div>
 

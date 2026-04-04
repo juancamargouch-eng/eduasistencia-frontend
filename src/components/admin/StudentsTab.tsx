@@ -1,33 +1,34 @@
 import React, { useState } from 'react';
-import type { Student } from '../../services/api';
+import { createPortal } from 'react-dom';
 import { getStudentPhotoUrl } from '../../services/api';
 
+import { useStudentsTab } from '../../hooks/tabs/useStudentsTab';
+import ImportModal from '../ImportStudentsModal';
+import BulkPhotoCaptureModal from './BulkPhotoEnrollment';
+import StudentDetailsModal from '../StudentDetailsModal';
+
 interface StudentsTabProps {
-    students: Student[];
-    filterGrade: string;
-    setFilterGrade: (val: string) => void;
-    filterSection: string;
-    setFilterSection: (val: string) => void;
     grades: string[];
     sections: string[];
-    onImport: () => void;
-    onBulkPhotoEnroll: () => void;
-    onSelectStudent: (student: Student) => void;
 }
 
 const StudentsTab: React.FC<StudentsTabProps> = ({
-    students,
-    filterGrade, setFilterGrade,
-    filterSection, setFilterSection,
-    grades, sections,
-    onImport, onBulkPhotoEnroll, onSelectStudent
+    grades, sections
 }) => {
+    const {
+        students,
+        filterGrade, setFilterGrade,
+        filterSection, setFilterSection,
+        pagination, handlePageChange,
+        showImportModal, setShowImportModal,
+        showBulkPhotoModal, setShowBulkPhotoModal,
+        selectedStudent, setSelectedStudent,
+        handleStudentUpdate,
+        refresh
+    } = useStudentsTab();
     const [viewMode, setViewMode] = useState<'list' | 'grid'>('grid');
 
-    const filteredStudents = students.filter(s =>
-        (!filterGrade || s.grade === filterGrade) &&
-        (!filterSection || s.section === filterSection)
-    );
+    const filteredStudents = students; // Ya filtrados en servidor
 
     return (
         <div className="bg-white/40 dark:bg-slate-900/40 backdrop-blur-3xl p-8 lg:p-10 rounded-[3rem] border border-white dark:border-slate-800 shadow-[0_40px_80px_-20px_rgba(0,0,0,0.08)]">
@@ -36,7 +37,7 @@ const StudentsTab: React.FC<StudentsTabProps> = ({
                     <h3 className="text-3xl font-black text-slate-900 dark:text-white tracking-tighter leading-none mb-2">Padrón de Estudiantes</h3>
                     <p className="text-[10px] font-black uppercase tracking-[0.2em] text-slate-400 flex items-center gap-2">
                         <span className="w-2 h-2 rounded-full bg-primary animate-pulse"></span>
-                        {filteredStudents.length} registros sincronizados
+                        {pagination.total} registros sincronizados
                     </p>
                 </div>
 
@@ -59,11 +60,11 @@ const StudentsTab: React.FC<StudentsTabProps> = ({
                         </button>
                     </div>
 
-                    <button onClick={onImport} className="px-6 py-3.5 bg-emerald-600 hover:bg-emerald-700 text-white rounded-2xl text-[10px] font-black uppercase tracking-[0.2em] flex items-center gap-3 transition-all shadow-[0_15px_30px_-5px_rgba(16,185,129,0.3)] active:scale-95 group">
+                    <button onClick={() => setShowImportModal(true)} className="px-6 py-3.5 bg-emerald-600 hover:bg-emerald-700 text-white rounded-2xl text-[10px] font-black uppercase tracking-[0.2em] flex items-center gap-3 transition-all shadow-[0_15px_30px_-5px_rgba(16,185,129,0.3)] active:scale-95 group">
                         <span className="material-icons-outlined text-xl group-hover:rotate-12 transition-transform">upload_file</span> Importar
                     </button>
 
-                    <button onClick={onBulkPhotoEnroll} className="px-6 py-3.5 bg-indigo-600 hover:bg-indigo-700 text-white rounded-2xl text-[10px] font-black uppercase tracking-[0.2em] flex items-center gap-3 transition-all shadow-[0_15px_30px_-5px_rgba(79,70,229,0.3)] active:scale-95 group">
+                    <button onClick={() => setShowBulkPhotoModal(true)} className="px-6 py-3.5 bg-indigo-600 hover:bg-indigo-700 text-white rounded-2xl text-[10px] font-black uppercase tracking-[0.2em] flex items-center gap-3 transition-all shadow-[0_15px_30px_-5px_rgba(79,70,229,0.3)] active:scale-95 group">
                         <span className="material-icons-outlined text-xl group-hover:scale-125 transition-transform">add_a_photo</span> Enrolamiento Masivo
                     </button>
 
@@ -154,7 +155,7 @@ const StudentsTab: React.FC<StudentsTabProps> = ({
                                     </td>
                                     <td className="px-8 py-5 text-right">
                                         <button
-                                            onClick={() => onSelectStudent(student)}
+                                            onClick={() => setSelectedStudent(student)}
                                             className="w-12 h-12 rounded-2xl bg-indigo-50 dark:bg-indigo-500/5 text-indigo-500 hover:bg-indigo-500 hover:text-white transition-all inline-flex items-center justify-center group-hover:scale-110 shadow-sm"
                                         >
                                             <span className="material-icons-outlined text-xl">visibility</span>
@@ -170,7 +171,7 @@ const StudentsTab: React.FC<StudentsTabProps> = ({
                     {filteredStudents.map(student => (
                         <div
                             key={student.id}
-                            onClick={() => onSelectStudent(student)}
+                            onClick={() => setSelectedStudent(student)}
                             className="group relative cursor-pointer bg-white/40 dark:bg-slate-800/20 border border-white dark:border-slate-800 rounded-[2.5rem] p-4 transition-all duration-500 hover:shadow-[0_30px_60px_-15px_rgba(0,0,0,0.15)] hover:-translate-y-3 hover:bg-white dark:hover:bg-slate-800"
                         >
                             {/* Card Status Indicator */}
@@ -219,6 +220,60 @@ const StudentsTab: React.FC<StudentsTabProps> = ({
                         </div>
                     ))}
                 </div>
+            )}
+
+            {/* Pagination Controls Premium */}
+            {pagination.total > pagination.limit && (
+                <div className="mt-12 flex items-center justify-between border-t border-slate-100 dark:border-slate-800 pt-8">
+                    <p className="text-[10px] font-black uppercase tracking-widest text-slate-400">
+                        Mostrando <span className="text-slate-900 dark:text-white">{students.length}</span> de <span className="text-slate-900 dark:text-white">{pagination.total}</span> alumnos
+                    </p>
+                    <div className="flex gap-2">
+                        <button
+                            disabled={pagination.page === 0}
+                            onClick={() => handlePageChange(pagination.page - 1)}
+                            className="w-12 h-12 rounded-xl border border-slate-200 dark:border-slate-700 flex items-center justify-center text-slate-600 dark:text-slate-400 hover:bg-slate-50 dark:hover:bg-slate-800 disabled:opacity-30 transition-all active:scale-95"
+                        >
+                            <span className="material-icons">chevron_left</span>
+                        </button>
+                        <div className="flex items-center px-4 bg-slate-50 dark:bg-slate-800 rounded-xl text-xs font-black text-primary">
+                            Página {pagination.page + 1}
+                        </div>
+                        <button
+                            disabled={(pagination.page + 1) * pagination.limit >= pagination.total}
+                            onClick={() => handlePageChange(pagination.page + 1)}
+                            className="w-12 h-12 rounded-xl border border-slate-200 dark:border-slate-700 flex items-center justify-center text-slate-600 dark:text-slate-400 hover:bg-slate-50 dark:hover:bg-slate-800 disabled:opacity-30 transition-all active:scale-95"
+                        >
+                            <span className="material-icons">chevron_right</span>
+                        </button>
+                    </div>
+                </div>
+            )}
+
+            {/* Modales Locales */}
+            {showImportModal && createPortal(
+                <ImportModal onClose={() => setShowImportModal(false)} onImportSuccess={refresh} />, document.body
+            )}
+            
+            {showBulkPhotoModal && createPortal(
+                <div className="fixed inset-0 z-[100] bg-slate-900/60 backdrop-blur-sm flex items-center justify-center p-4">
+                    <div className="w-full max-w-4xl relative">
+                        <button onClick={() => setShowBulkPhotoModal(false)} className="absolute -top-12 right-0 w-10 h-10 bg-white/10 hover:bg-white text-white hover:text-slate-900 rounded-full flex items-center justify-center transition-all">
+                            <span className="material-icons">close</span>
+                        </button>
+                        <BulkPhotoCaptureModal
+                            onComplete={() => { setShowBulkPhotoModal(false); refresh(); }}
+                        />
+                    </div>
+                </div>, document.body
+            )}
+            
+            {selectedStudent && (
+                <StudentDetailsModal
+                    student={selectedStudent}
+                    onClose={() => setSelectedStudent(null)}
+                    onUpdate={handleStudentUpdate}
+                />
             )}
         </div>
     );

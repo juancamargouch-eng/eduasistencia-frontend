@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { toast } from 'sonner';
-import { getCurrentUser, updateCurrentUser, type AdminUser } from '../../services/api';
+import { getMe, updateCurrentUser, type AdminUser } from '../../services/api';
 
 interface ProfileEditModalProps {
     isOpen: boolean;
@@ -25,7 +25,7 @@ const ProfileEditModal: React.FC<ProfileEditModalProps> = ({ isOpen, onClose, on
 
     const loadUserData = async () => {
         try {
-            const user = await getCurrentUser();
+            const user = await getMe();
             setFormData({
                 full_name: user.full_name || '',
                 username: user.username || '',

@@ -68,6 +68,10 @@ export const useKioskLogic = (webcamRef: React.RefObject<Webcam | null>, resetCa
             if (dni) formData.append('dni', dni);
             formData.append('face_descriptor', JSON.stringify(descriptor));
 
+            // Extraer el ID del dispositivo (ej. configurado previamente por Admin en este Kiosko/Tablet)
+            const deviceId = localStorage.getItem('kiosk_device_id') || 'Dispositivo Desconocido';
+            formData.append('device_source', deviceId);
+
             if (imageSrc) {
                 const blob = await (await fetch(imageSrc)).blob();
                 formData.append('file', blob, 'attempt.jpg');

@@ -1,38 +1,18 @@
 import React from 'react';
 import { type Schedule } from '../../services/api';
+import { useReportsTab } from '../../hooks/tabs/useReportsTab';
 
 interface ReportsTabProps {
-    reportDateFrom: string;
-    setReportDateFrom: (val: string) => void;
-    reportDateTo: string;
-    setReportDateTo: (val: string) => void;
-    reportGrade: string;
-    setReportGrade: (val: string) => void;
-    reportSection: string;
-    setReportSection: (val: string) => void;
-    reportSearch: string;
-    setReportSearch: (val: string) => void;
-    reportStatus: string;
-    setReportStatus: (val: string) => void;
-    reportScheduleId: string | number;
-    setReportScheduleId: (val: string | number) => void;
     grades: string[];
     sections: string[];
     schedules: Schedule[];
-    onExport: () => void;
 }
 
 const ReportsTab: React.FC<ReportsTabProps> = ({
-    reportDateFrom, setReportDateFrom,
-    reportDateTo, setReportDateTo,
-    reportGrade, setReportGrade,
-    reportSection, setReportSection,
-    reportSearch, setReportSearch,
-    reportStatus, setReportStatus,
-    reportScheduleId, setReportScheduleId,
-    grades, sections, schedules,
-    onExport
+    grades, sections, schedules
 }) => {
+    const { reportFilters, setReportFilters, handleExportReport, loading } = useReportsTab();
+
     return (
         <div className="max-w-4xl mx-auto py-10 px-4">
             <div className="bg-white/60 dark:bg-slate-900/60 backdrop-blur-3xl p-8 lg:p-14 rounded-[4rem] border border-white dark:border-slate-800 shadow-[0_50px_100px_-20px_rgba(0,0,0,0.12)] group relative overflow-hidden">
@@ -60,8 +40,8 @@ const ReportsTab: React.FC<ReportsTabProps> = ({
                                     type="text" 
                                     placeholder="EJ. JUAN PEREZ O 72839405..."
                                     className="w-full px-6 py-4 pl-14 rounded-2xl bg-white/50 dark:bg-slate-800 border-none outline-none focus:ring-4 focus:ring-primary/20 transition-all font-black text-xs tracking-widest uppercase placeholder:text-slate-300 dark:placeholder:text-slate-600" 
-                                    value={reportSearch} 
-                                    onChange={e => setReportSearch(e.target.value)} 
+                                    value={reportFilters.search} 
+                                    onChange={e => setReportFilters(prev => ({ ...prev, search: e.target.value }))} 
                                 />
                                 <span className="absolute left-6 top-1/2 -translate-y-1/2 material-icons text-slate-400">search</span>
                             </div>
@@ -70,11 +50,11 @@ const ReportsTab: React.FC<ReportsTabProps> = ({
                         <div className="grid grid-cols-1 sm:grid-cols-2 gap-8">
                             <div className="space-y-3">
                                 <label className="block text-[9px] font-black uppercase tracking-[0.3em] ml-1 text-slate-400">Rango Inicial</label>
-                                <input type="date" className="w-full px-6 py-4 rounded-2xl bg-white/50 dark:bg-slate-800 border-none outline-none focus:ring-4 focus:ring-primary/20 transition-all font-black text-sm tracking-widest" value={reportDateFrom} onChange={e => setReportDateFrom(e.target.value)} />
+                                <input type="date" className="w-full px-6 py-4 rounded-2xl bg-white/50 dark:bg-slate-800 border-none outline-none focus:ring-4 focus:ring-primary/20 transition-all font-black text-sm tracking-widest" value={reportFilters.from} onChange={e => setReportFilters(prev => ({ ...prev, from: e.target.value }))} />
                             </div>
                             <div className="space-y-3">
                                 <label className="block text-[9px] font-black uppercase tracking-[0.3em] ml-1 text-slate-400">Rango Final</label>
-                                <input type="date" className="w-full px-6 py-4 rounded-2xl bg-white/50 dark:bg-slate-800 border-none outline-none focus:ring-4 focus:ring-primary/20 transition-all font-black text-sm tracking-widest" value={reportDateTo} onChange={e => setReportDateTo(e.target.value)} />
+                                <input type="date" className="w-full px-6 py-4 rounded-[2xl] bg-white/50 dark:bg-slate-800 border-none outline-none focus:ring-4 focus:ring-primary/20 transition-all font-black text-sm tracking-widest" value={reportFilters.to} onChange={e => setReportFilters(prev => ({ ...prev, to: e.target.value }))} />
                             </div>
                         </div>
 
@@ -82,7 +62,7 @@ const ReportsTab: React.FC<ReportsTabProps> = ({
                             <div className="space-y-3">
                                 <label className="block text-[9px] font-black uppercase tracking-[0.3em] ml-1 text-slate-400">Grado</label>
                                 <div className="relative">
-                                    <select className="w-full px-6 py-4 rounded-2xl bg-white/50 dark:bg-slate-800 border-none outline-none focus:ring-4 focus:ring-primary/20 transition-all font-black text-[10px] uppercase tracking-widest appearance-none cursor-pointer" value={reportGrade} onChange={e => setReportGrade(e.target.value)}>
+                                    <select className="w-full px-6 py-4 rounded-2xl bg-white/50 dark:bg-slate-800 border-none outline-none focus:ring-4 focus:ring-primary/20 transition-all font-black text-[10px] uppercase tracking-widest appearance-none cursor-pointer" value={reportFilters.grade} onChange={e => setReportFilters(prev => ({ ...prev, grade: e.target.value }))}>
                                         <option value="">TODOS</option>
                                         {grades.map(g => <option key={g} value={g}>{g}</option>)}
                                     </select>
@@ -92,7 +72,7 @@ const ReportsTab: React.FC<ReportsTabProps> = ({
                             <div className="space-y-3">
                                 <label className="block text-[9px] font-black uppercase tracking-[0.3em] ml-1 text-slate-400">Sección</label>
                                 <div className="relative">
-                                    <select className="w-full px-6 py-4 rounded-2xl bg-white/50 dark:bg-slate-800 border-none outline-none focus:ring-4 focus:ring-primary/20 transition-all font-black text-[10px] uppercase tracking-widest appearance-none cursor-pointer" value={reportSection} onChange={e => setReportSection(e.target.value)}>
+                                    <select className="w-full px-6 py-4 rounded-2xl bg-white/50 dark:bg-slate-800 border-none outline-none focus:ring-4 focus:ring-primary/20 transition-all font-black text-[10px] uppercase tracking-widest appearance-none cursor-pointer" value={reportFilters.section} onChange={e => setReportFilters(prev => ({ ...prev, section: e.target.value }))}>
                                         <option value="">TODAS</option>
                                         {sections.map(s => <option key={s} value={s}>{s}</option>)}
                                     </select>
@@ -104,8 +84,8 @@ const ReportsTab: React.FC<ReportsTabProps> = ({
                                 <div className="relative">
                                     <select 
                                         className="w-full px-6 py-4 rounded-2xl bg-white/50 dark:bg-slate-800 border-none outline-none focus:ring-4 focus:ring-primary/20 transition-all font-black text-[10px] uppercase tracking-widest appearance-none cursor-pointer" 
-                                        value={reportStatus} 
-                                        onChange={e => setReportStatus(e.target.value)}
+                                        value={reportFilters.status} 
+                                        onChange={e => setReportFilters(prev => ({ ...prev, status: e.target.value }))}
                                     >
                                         <option value="">CUALQUIER ESTADO</option>
                                         <option value="PRESENT">PRESENTE (A TIEMPO)</option>
@@ -122,8 +102,8 @@ const ReportsTab: React.FC<ReportsTabProps> = ({
                             <div className="relative">
                                 <select 
                                     className="w-full px-6 py-4 rounded-2xl bg-white/50 dark:bg-slate-800 border-none outline-none focus:ring-4 focus:ring-primary/20 transition-all font-black text-[10px] uppercase tracking-widest appearance-none cursor-pointer" 
-                                    value={reportScheduleId} 
-                                    onChange={e => setReportScheduleId(e.target.value)}
+                                    value={reportFilters.scheduleId} 
+                                    onChange={e => setReportFilters(prev => ({ ...prev, scheduleId: e.target.value }))}
                                 >
                                     <option value="">TODOS LOS TURNOS</option>
                                     {schedules.map(sch => (
@@ -136,11 +116,18 @@ const ReportsTab: React.FC<ReportsTabProps> = ({
 
                         <div className="pt-6">
                             <button 
-                                onClick={onExport} 
-                                className="w-full py-6 bg-primary text-white rounded-[2rem] font-black uppercase tracking-[0.4em] text-xs shadow-[0_25px_50px_-12px_rgba(225,5,33,0.4)] hover:shadow-[0_30px_60px_-12px_rgba(225,5,33,0.6)] hover:-translate-y-1 active:scale-95 transition-all flex items-center justify-center gap-4 group"
+                                onClick={handleExportReport} 
+                                disabled={loading}
+                                className={`w-full py-6 rounded-[2rem] font-black uppercase tracking-[0.4em] text-xs transition-all flex items-center justify-center gap-4 group mt-2 ${
+                                    loading 
+                                        ? 'bg-primary/50 text-white/70 cursor-wait' 
+                                        : 'bg-primary text-white shadow-[0_25px_50px_-12px_rgba(225,5,33,0.4)] hover:shadow-[0_30px_60px_-12px_rgba(225,5,33,0.6)] hover:-translate-y-1 active:scale-95'
+                                }`}
                             >
-                                <span className="material-icons-outlined text-2xl group-hover:animate-bounce">cloud_download</span>
-                                GENERAR AUDITORÍA EXCEL (.XLSX)
+                                <span className={`material-icons-outlined text-2xl ${!loading && 'group-hover:animate-bounce'}`}>
+                                    {loading ? 'hourglass_empty' : 'cloud_download'}
+                                </span>
+                                {loading ? 'GENERANDO ARCHIVO...' : 'GENERAR AUDITORÍA EXCEL (.XLSX)'}
                             </button>
                         </div>
                         

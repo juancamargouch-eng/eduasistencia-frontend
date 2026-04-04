@@ -22,6 +22,13 @@ export interface Student {
     } | null;
 }
 
+export interface StudentPaginationResponse {
+    total: number;
+    items: Student[];
+    skip: number;
+    limit: number;
+}
+
 export interface ConflictDetail {
     message: string;
     timestamp: string;
@@ -29,6 +36,8 @@ export interface ConflictDetail {
 }
 
 export type ApiErrorDetail = string | ConflictDetail;
+
+export type TabName = 'dashboard' | 'registration' | 'students' | 'reports' | 'justifications' | 'settings' | 'daily_attendance' | 'telegram' | 'occupancy' | 'tasks' | 'announcements' | 'users';
 
 export interface AttendanceLog {
     id: number;
@@ -40,6 +49,13 @@ export interface AttendanceLog {
     event_type?: string;
     status?: string;
     student?: Student;
+}
+
+export interface AttendancePaginationResponse {
+    total: number;
+    items: AttendanceLog[];
+    skip: number;
+    limit: number;
 }
 
 export interface ScheduleData {
@@ -66,6 +82,28 @@ export interface Justification extends JustificationCreate {
     id: number;
     status: 'PENDING' | 'APPROVED' | 'REJECTED' | string;
     student?: Student;
+}
+
+export interface Assignment {
+    id: number;
+    title: string;
+    description?: string;
+    file_url?: string;
+    due_date?: string;
+    grade: string;
+    section: string;
+    teacher_id: number;
+    created_at: string;
+}
+
+export interface Announcement {
+    id: number;
+    title: string;
+    content: string;
+    target_grade?: string;
+    target_section?: string;
+    author_id: number;
+    created_at: string;
 }
 
 export interface ReportFilters {
@@ -149,8 +187,10 @@ export const login = async (username: string, password: string) => {
     return response.data; // Incluye access_token, token_type e is_superuser
 };
 
-export const getStudents = async () => {
-    const response = await api.get('/students/');
+export const getStudents = async (skip = 0, limit = 50, grade?: string, section?: string, search?: string) => {
+    const response = await api.get<StudentPaginationResponse>('/students/', {
+        params: { skip, limit, grade, section, search }
+    });
     return response.data;
 };
 
@@ -164,8 +204,10 @@ export const verifyAttendance = async (formData: FormData) => {
     return response.data;
 };
 
-export const getAttendanceLogs = async () => {
-    const response = await api.get('/attendance/logs');
+export const getAttendanceLogs = async (skip = 0, limit = 50) => {
+    const response = await api.get<AttendancePaginationResponse>('/attendance/logs', {
+        params: { skip, limit }
+    });
     return response.data;
 };
 
@@ -296,14 +338,55 @@ export const validateAttendanceLog = async (id: number) => {
     return response.data;
 };
 
-export const getOccupancyStats = async () => {
-    const response = await api.get('/attendance/stats/occupancy');
+export interface OccupancyPaginationResponse {
+    total_entries: number;
+    total_exits: number;
+    current_count: number;
+    items: (Student & { entry_time: string })[];
+    total: number;
+    skip: number;
+    limit: number;
+}
+
+export const getOccupancyStats = async (skip = 0, limit = 50, grade?: string, section?: string) => {
+    const response = await api.get<OccupancyPaginationResponse>('/attendance/stats/occupancy', {
+        params: { skip, limit, grade, section }
+    });
     return response.data;
 };
 
-export const getDailyAttendance = async (grade: string, section: string, date?: string, scheduleId?: number) => {
-    const response = await api.get('/attendance/daily-status', {
-        params: { grade, section, date_str: date, schedule_id: scheduleId }
+export interface DailyAttendancePaginationResponse {
+    date: string;
+    is_non_working_day: boolean;
+    holiday_name?: string | null;
+    summary: {
+        present: number;
+        late: number;
+        absent: number;
+        total: number;
+    };
+    items: Array<{
+        id: number;
+        full_name: string;
+        photo_url?: string;
+        status: string;
+        entry_time?: string | null;
+    }>;
+    total: number;
+    skip: number;
+    limit: number;
+}
+
+export const getDailyAttendance = async (
+    grade: string, 
+    section: string, 
+    date?: string, 
+    scheduleId?: number,
+    skip = 0,
+    limit = 50
+) => {
+    const response = await api.get<DailyAttendancePaginationResponse>('/attendance/daily-status', {
+        params: { grade, section, date_str: date, schedule_id: scheduleId, skip, limit }
     });
     return response.data;
 };
@@ -326,6 +409,22 @@ export const getMonthlyStats = async () => {
     const response = await api.get('/attendance/stats/monthly');
     return response.data;
 };
+
+export interface AttendancePercentageData {
+    present: number;
+    late: number;
+    absent: number;
+    total_expected: number;
+    period: string;
+}
+
+export const getAttendancePercentages = async (period: 'day' | 'week' | 'month' = 'month') => {
+    const response = await api.get<AttendancePercentageData>('/attendance/stats/percentages', {
+        params: { period }
+    });
+    return response.data;
+};
+
 
 // Telegram Settings
 export interface TelegramConfig {
@@ -375,13 +474,14 @@ export interface AdminUser {
     username: string;
     full_name: string | null;
     email: string | null;
+    role: string;
     is_active: boolean;
     is_superuser: boolean;
 }
 
-export const getCurrentUser = async () => {
+export const getMe = async () => {
     const response = await api.get('/users/me');
-    return response.data as AdminUser;
+    return response.data as AdminUser & { role: string };
 };
 
 export const updateCurrentUser = async (data: {
@@ -391,6 +491,84 @@ export const updateCurrentUser = async (data: {
 }) => {
     const response = await api.put('/users/me', data);
     return response.data as AdminUser;
+};
+
+// --- SuperUser Management ---
+export const getUsers = async () => {
+    const response = await api.get('/users/');
+    return response.data as AdminUser[];
+};
+
+export const createUser = async (data: any) => {
+    const response = await api.post('/users/', data);
+    return response.data as AdminUser;
+};
+
+export const updateUser = async (id: number, data: any) => {
+    const response = await api.put(`/users/${id}`, data);
+    return response.data as AdminUser;
+};
+
+export const deleteUser = async (id: number) => {
+    const response = await api.delete(`/users/${id}`);
+    return response.data;
+};
+
+// --- Dynamic Permissions ---
+export interface Permission {
+    id?: number;
+    role: string;
+    module_name: string;
+    is_enabled: boolean;
+}
+
+export const getPermissions = async () => {
+    const response = await api.get('/settings/permissions');
+    return response.data as Permission[];
+};
+
+export const updatePermissions = async (data: Permission[]) => {
+    const response = await api.post('/settings/permissions', data);
+    return response.data;
+};
+
+// Assignments
+export const getAssignments = async () => {
+    const response = await api.get<Assignment[]>('/assignments/');
+    return response.data;
+};
+
+export const createAssignment = async (formData: FormData) => {
+    const response = await api.post<Assignment>('/assignments/', formData, {
+        headers: { 'Content-Type': 'multipart/form-data' }
+    });
+    return response.data;
+};
+
+export const deleteAssignment = async (id: number) => {
+    const response = await api.delete(`/assignments/${id}`);
+    return response.data;
+};
+
+// Announcements
+export const getAnnouncements = async () => {
+    const response = await api.get<Announcement[]>('/announcements/');
+    return response.data;
+};
+
+export const createAnnouncement = async (data: {
+    title: string;
+    content: string;
+    target_grade?: string;
+    target_section?: string;
+}) => {
+    const response = await api.post<Announcement>('/announcements/', data);
+    return response.data;
+};
+
+export const deleteAnnouncement = async (id: number) => {
+    const response = await api.delete(`/announcements/${id}`);
+    return response.data;
 };
 
 export default api;

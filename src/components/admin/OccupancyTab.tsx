@@ -1,51 +1,66 @@
-import React, { useEffect, useState } from 'react';
-import { getStudentPhotoUrl, type Student } from '../../services/api';
-import api from '../../services/api';
+import React from 'react';
+import { getStudentPhotoUrl } from '../../services/api';
+import { useOccupancyTab } from '../../hooks/tabs/useOccupancyTab';
 
-interface OccupancyData {
-    total_entries: number;
-    total_exits: number;
-    current_count: number;
-    students: (Student & { entry_time: string })[];
+interface OccupancyTabProps {
+    grades: string[];
+    sections: string[];
 }
 
-const OccupancyTab: React.FC = () => {
-    const [data, setData] = useState<OccupancyData | null>(null);
-    const [loading, setLoading] = useState(true);
-
-    const fetchOccupancy = async () => {
-        try {
-            const response = await api.get('/attendance/stats/occupancy');
-            setData(response.data);
-        } catch (error) {
-            console.error("Error fetching occupancy:", error);
-        } finally {
-            setLoading(false);
-        }
-    };
-
-    useEffect(() => {
-        fetchOccupancy();
-        const interval = setInterval(fetchOccupancy, 30000); // Polling cada 30s
-        return () => clearInterval(interval);
-    }, []);
-
-    if (loading && !data) {
-        return (
-            <div className="flex items-center justify-center h-64">
-                <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary"></div>
-            </div>
-        );
-    }
-
+const OccupancyTab: React.FC<OccupancyTabProps> = ({ 
+    grades,
+    sections
+}) => {
+    const {
+        occupancy,
+        pagination,
+        setPagination,
+        filterGrade,
+        setFilterGrade,
+        filterSection,
+        setFilterSection,
+        refresh
+    } = useOccupancyTab();
     return (
         <div className="space-y-8 animate-in fade-in slide-in-from-bottom-4 duration-700">
+            {/* Filtros de Búsqueda Académica */}
+            <div className="bg-white/40 dark:bg-slate-900/40 backdrop-blur-3xl p-6 rounded-[2.5rem] border border-white dark:border-slate-800 shadow-sm flex flex-wrap gap-6 items-end">
+                <div className="flex-1 min-w-[200px] space-y-2">
+                    <label className="block text-[10px] font-black uppercase tracking-widest ml-1 text-slate-400">Filtrar por Grado</label>
+                    <div className="relative">
+                        <select 
+                            className="w-full px-5 py-3 rounded-2xl bg-white/50 dark:bg-slate-800 border-none outline-none focus:ring-4 focus:ring-primary/20 font-black text-xs tracking-tight transition-all appearance-none cursor-pointer"
+                            value={filterGrade}
+                            onChange={(e) => setFilterGrade(e.target.value)}
+                        >
+                            <option value="">Todos los Grados</option>
+                            {grades.map(g => <option key={g} value={g}>{g}</option>)}
+                        </select>
+                        <span className="absolute right-4 top-1/2 -translate-y-1/2 material-icons text-slate-400 pointer-events-none">expand_more</span>
+                    </div>
+                </div>
+                <div className="flex-1 min-w-[150px] space-y-2">
+                    <label className="block text-[10px] font-black uppercase tracking-widest ml-1 text-slate-400">Sección</label>
+                    <div className="relative">
+                        <select 
+                            className="w-full px-5 py-3 rounded-2xl bg-white/50 dark:bg-slate-800 border-none outline-none focus:ring-4 focus:ring-primary/20 font-black text-xs tracking-tight transition-all appearance-none cursor-pointer"
+                            value={filterSection}
+                            onChange={(e) => setFilterSection(e.target.value)}
+                        >
+                            <option value="">Todas</option>
+                            {sections.map(s => <option key={s} value={s}>{s}</option>)}
+                        </select>
+                        <span className="absolute right-4 top-1/2 -translate-y-1/2 material-icons text-slate-400 pointer-events-none">expand_more</span>
+                    </div>
+                </div>
+            </div>
+
             {/* Header / Stats */}
             <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
                 <div className="bg-white dark:bg-slate-900 p-8 rounded-[2rem] shadow-xl border border-slate-100 dark:border-slate-800">
                     <p className="text-slate-500 dark:text-slate-400 font-bold text-xs uppercase tracking-widest mb-2">Entradas Hoy</p>
                     <div className="flex items-end gap-3">
-                        <span className="text-4xl font-black text-slate-900 dark:text-white">{data?.total_entries || 0}</span>
+                        <span className="text-4xl font-black text-slate-900 dark:text-white">{occupancy.total_entries}</span>
                         <span className="text-green-500 mb-1 material-icons">login</span>
                     </div>
                 </div>
@@ -54,7 +69,7 @@ const OccupancyTab: React.FC = () => {
                     <div className="relative z-10">
                         <p className="opacity-80 font-bold text-xs uppercase tracking-widest mb-2">Aforo Actual</p>
                         <div className="flex items-end gap-3">
-                            <span className="text-5xl font-black">{data?.current_count || 0}</span>
+                            <span className="text-5xl font-black">{occupancy.current_count}</span>
                             <span className="mb-1 material-icons text-3xl">groups</span>
                         </div>
                     </div>
@@ -64,7 +79,7 @@ const OccupancyTab: React.FC = () => {
                 <div className="bg-white dark:bg-slate-900 p-8 rounded-[2rem] shadow-xl border border-slate-100 dark:border-slate-800">
                     <p className="text-slate-500 dark:text-slate-400 font-bold text-xs uppercase tracking-widest mb-2">Salidas Hoy</p>
                     <div className="flex items-end gap-3">
-                        <span className="text-4xl font-black text-slate-900 dark:text-white">{data?.total_exits || 0}</span>
+                        <span className="text-4xl font-black text-slate-900 dark:text-white">{occupancy.total_exits}</span>
                         <span className="text-blue-500 mb-1 material-icons">logout</span>
                     </div>
                 </div>
@@ -78,7 +93,7 @@ const OccupancyTab: React.FC = () => {
                         <p className="text-slate-500 dark:text-slate-400 text-sm font-medium">Lista de alumnos que marcaron entrada y aún están presentes.</p>
                     </div>
                     <button 
-                        onClick={fetchOccupancy}
+                        onClick={refresh}
                         className="p-3 bg-slate-100 dark:bg-slate-800 rounded-2xl hover:bg-primary hover:text-white transition-all duration-300"
                     >
                         <span className="material-icons">refresh</span>
@@ -96,14 +111,14 @@ const OccupancyTab: React.FC = () => {
                             </tr>
                         </thead>
                         <tbody className="divide-y divide-slate-100 dark:divide-slate-800">
-                            {data?.students.length === 0 ? (
+                            {occupancy.items.length === 0 ? (
                                 <tr>
                                     <td colSpan={4} className="px-8 py-12 text-center text-slate-500 dark:text-slate-400 font-medium">
                                         No hay alumnos registrados actualmente en el campus.
                                     </td>
                                 </tr>
                             ) : (
-                                data?.students.map((student) => (
+                                occupancy.items.map((student) => (
                                     <tr key={student.id} className="hover:bg-slate-50/50 dark:hover:bg-slate-800/30 transition-colors group">
                                         <td className="px-8 py-5">
                                             <div className="flex items-center gap-4">
@@ -142,6 +157,34 @@ const OccupancyTab: React.FC = () => {
                         </tbody>
                     </table>
                 </div>
+
+                {/* Pagination Controls */}
+                {pagination.total > pagination.limit && (
+                    <div className="p-8 border-t border-slate-100 dark:border-slate-800 flex items-center justify-between bg-slate-50/50 dark:bg-slate-800/50">
+                        <p className="text-xs font-bold text-slate-400 uppercase tracking-widest">
+                            Mostrando {occupancy.items.length} de {pagination.total} en campus
+                        </p>
+                        <div className="flex gap-2">
+                            <button
+                                onClick={() => setPagination(p => ({ ...p, page: p.page - 1 }))}
+                                disabled={pagination.page === 0}
+                                className="flex items-center gap-2 px-6 py-2.5 rounded-2xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 text-[10px] font-black uppercase tracking-widest hover:border-primary hover:text-primary disabled:opacity-30 disabled:hover:border-slate-200 disabled:hover:text-inherit transition-all shadow-sm"
+                            >
+                                <span className="material-icons text-sm">chevron_left</span> Anterior
+                            </button>
+                            <div className="flex items-center px-4 text-[10px] font-black uppercase tracking-widest text-slate-400">
+                                Página {pagination.page + 1}
+                            </div>
+                            <button
+                                onClick={() => setPagination(p => ({ ...p, page: p.page + 1 }))}
+                                disabled={(pagination.page + 1) * pagination.limit >= pagination.total}
+                                className="flex items-center gap-2 px-6 py-2.5 rounded-2xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 text-[10px] font-black uppercase tracking-widest hover:border-primary hover:text-primary disabled:opacity-30 disabled:hover:border-slate-200 disabled:hover:text-inherit transition-all shadow-sm"
+                            >
+                                Siguiente <span className="material-icons text-sm">chevron_right</span>
+                            </button>
+                        </div>
+                    </div>
+                )}
             </div>
         </div>
     );
