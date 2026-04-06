@@ -4,6 +4,8 @@ interface ButtonProps extends React.ButtonHTMLAttributes<HTMLButtonElement> {
     variant?: 'primary' | 'secondary' | 'red' | 'green' | 'amber' | 'ghost';
     size?: 'sm' | 'md' | 'lg';
     isLoading?: boolean;
+    loading?: boolean; // Soporte para ambos nombres
+    fullWidth?: boolean;
     icon?: string;
 }
 
@@ -12,11 +14,14 @@ const Button: React.FC<ButtonProps> = ({
     variant = 'primary',
     size = 'md',
     isLoading = false,
+    loading = false,
+    fullWidth = false,
     icon,
     className = '',
     ...props
 }) => {
-    const baseStyles = "inline-flex items-center justify-center gap-2 font-bold rounded-xl transition-all disabled:opacity-50 disabled:cursor-not-allowed";
+    const isBtnLoading = isLoading || loading;
+    const baseStyles = `inline-flex items-center justify-center gap-2 font-bold rounded-xl transition-all disabled:opacity-50 disabled:cursor-not-allowed ${fullWidth ? 'w-full' : ''}`;
 
     const variants = {
         primary: "bg-primary text-white shadow-lg shadow-primary/20 hover:bg-primary/90",
@@ -36,10 +41,10 @@ const Button: React.FC<ButtonProps> = ({
     return (
         <button
             className={`${baseStyles} ${variants[variant]} ${sizes[size]} ${className}`}
-            disabled={isLoading || props.disabled}
+            disabled={isBtnLoading || props.disabled}
             {...props}
         >
-            {isLoading ? (
+            {isBtnLoading ? (
                 <div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" />
             ) : icon ? (
                 <span className="material-icons-outlined text-xl">{icon}</span>

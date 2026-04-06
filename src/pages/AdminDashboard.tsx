@@ -21,6 +21,8 @@ import UsersTab from '../components/admin/UsersTab';
 import type { TabName } from '../components/admin/Sidebar';
 import PermissionsManager from '../components/admin/PermissionsManager';
 import TasksTab from '../components/admin/TasksTab';
+import AcademicTab from '../components/admin/AcademicTab';
+import GradesTab from '../components/admin/GradesTab';
 
 const AdminDashboard: React.FC = () => {
     const { isSuperuser, role, permissions } = useAuth();
@@ -61,6 +63,8 @@ const AdminDashboard: React.FC = () => {
             {activeTab === 'justifications' && hasAccess('justifications') && <JustificationsTab />}
             
             {/* Pestañas académicas */}
+            {activeTab === 'academic' && hasAccess('academic') && <AcademicTab />}
+            {activeTab === 'grades' && hasAccess('grades') && <GradesTab />}
             {activeTab === 'tasks' && hasAccess('tasks') && <TasksTab grades={grades} sections={sections} />}
             {activeTab === 'announcements' && hasAccess('announcements') && <AnnouncementsTab grades={grades} sections={sections} />}
 

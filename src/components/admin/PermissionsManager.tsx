@@ -12,7 +12,7 @@ const PermissionsManager: React.FC = () => {
     const modules: TabName[] = [
         'dashboard', 'registration', 'students', 'daily_attendance', 
         'occupancy', 'tasks', 'announcements', 'reports', 
-        'justifications', 'telegram', 'settings', 'users'
+        'justifications', 'telegram', 'settings', 'users', 'academic', 'grades'
     ];
 
     const moduleTranslations: Record<TabName, string> = {
@@ -27,7 +27,9 @@ const PermissionsManager: React.FC = () => {
         justifications: 'Justificaciones',
         telegram: 'Telegram (Bot)',
         settings: 'Ajustes',
-        users: 'Usuarios (Personal)'
+        users: 'Usuarios (Personal)',
+        academic: 'Gestión Académica',
+        grades: 'Libreta de Calificaciones'
     };
 
     useEffect(() => {

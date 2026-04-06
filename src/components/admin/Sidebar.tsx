@@ -2,7 +2,7 @@ import { useNavigate, useLocation } from 'react-router-dom';
 import { useAuth } from '../../context/AuthContext';
 import { canAccessTab } from '../../utils/permissions';
 
-export type TabName = 'dashboard' | 'registration' | 'students' | 'reports' | 'justifications' | 'settings' | 'daily_attendance' | 'telegram' | 'occupancy' | 'tasks' | 'announcements' | 'users';
+export type TabName = 'dashboard' | 'registration' | 'students' | 'reports' | 'justifications' | 'settings' | 'daily_attendance' | 'telegram' | 'occupancy' | 'tasks' | 'announcements' | 'users' | 'academic' | 'grades';
 
 interface SidebarProps {
     isOpen: boolean;
@@ -53,9 +53,15 @@ const Sidebar: React.FC<SidebarProps> = ({ isOpen, closeSidebar }) => {
                 )}
                 
                 {/* Académico */}
-                {(hasAccess('tasks') || hasAccess('announcements')) && (
+                {(hasAccess('tasks') || hasAccess('announcements') || hasAccess('academic') || hasAccess('grades')) && (
                     <div className="pt-4 mt-4 border-t border-slate-100 dark:border-slate-800 space-y-2">
                         <p className="px-5 text-[9px] font-black uppercase tracking-[0.3em] text-slate-400 mb-2">Académico</p>
+                        {hasAccess('academic') && (
+                            <NavItem id="academic" icon="school" label="Gestión Académica" activeTab={activeTab} navigate={navigate} onClick={closeSidebar} />
+                        )}
+                        {hasAccess('grades') && (
+                            <NavItem id="grades" icon="grading" label="Calificaciones" activeTab={activeTab} navigate={navigate} onClick={closeSidebar} />
+                        )}
                         {hasAccess('tasks') && (
                             <NavItem id="tasks" icon="assignment" label="Tareas" activeTab={activeTab} navigate={navigate} onClick={closeSidebar} />
                         )}
