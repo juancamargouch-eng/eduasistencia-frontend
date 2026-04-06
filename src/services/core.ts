@@ -31,7 +31,7 @@ if (!API_URL) {
 }
 
 const api = axios.create({
-    baseURL: API_URL,
+    baseURL: API_URL?.endsWith('/') ? API_URL : `${API_URL}/`,
 });
 
 api.interceptors.request.use((config) => {

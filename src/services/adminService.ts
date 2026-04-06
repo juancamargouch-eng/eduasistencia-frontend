@@ -15,17 +15,17 @@ export interface Schedule extends Required<ScheduleData> {
 }
 
 export const getSchedules = async () => {
-    const response = await api.get('/schedules/');
+    const response = await api.get('schedules/');
     return response.data;
 };
 
 export const createSchedule = async (data: ScheduleData) => {
-    const response = await api.post('/schedules/', data);
+    const response = await api.post('schedules/', data);
     return response.data;
 };
 
 export const updateSchedule = async (id: number, data: Partial<ScheduleData>) => {
-    const response = await api.put(`/schedules/${id}`, data);
+    const response = await api.put(`schedules/${id}`, data);
     return response.data;
 };
 
@@ -41,7 +41,7 @@ export interface Device {
 }
 
 export const getDevices = async () => {
-    const response = await api.get('/devices/');
+    const response = await api.get('devices/');
     return response.data;
 };
 
@@ -57,7 +57,7 @@ export interface TelegramConfig {
 }
 
 export const getTelegramConfig = async () => {
-    const response = await api.get('/settings/telegram');
+    const response = await api.get('settings/telegram');
     return response.data as TelegramConfig;
 };
 
@@ -68,12 +68,12 @@ export const updateTelegramConfig = async (data: {
     phone?: string;
     is_active?: boolean;
 }) => {
-    const response = await api.post('/settings/telegram', data);
+    const response = await api.post('settings/telegram', data);
     return response.data;
 };
 
 export const sendTelegramCode = async (phone: string) => {
-    const response = await api.post('/settings/telegram/send-code', { phone });
+    const response = await api.post('settings/telegram/send-code', { phone });
     return response.data;
 };
 
@@ -83,7 +83,7 @@ export const loginTelegram = async (data: {
     phone_code_hash: string;
     password?: string
 }) => {
-    const response = await api.post('/settings/telegram/login', data);
+    const response = await api.post('settings/telegram/login', data);
     return response.data;
 };
 
@@ -99,7 +99,7 @@ export interface AdminUser {
 }
 
 export const getMe = async () => {
-    const response = await api.get('/users/me');
+    const response = await api.get('users/me');
     return response.data as AdminUser & { role: string };
 };
 
@@ -108,28 +108,28 @@ export const updateCurrentUser = async (data: {
     full_name?: string;
     password?: string;
 }) => {
-    const response = await api.put('/users/me', data);
+    const response = await api.put('users/me', data);
     return response.data as AdminUser;
 };
 
 // --- SuperUser Management ---
 export const getUsers = async () => {
-    const response = await api.get('/users/');
+    const response = await api.get('users/');
     return response.data as AdminUser[];
 };
 
 export const createUser = async (data: any) => {
-    const response = await api.post('/users/', data);
+    const response = await api.post('users/', data);
     return response.data as AdminUser;
 };
 
 export const updateUser = async (id: number, data: any) => {
-    const response = await api.put(`/users/${id}`, data);
+    const response = await api.put(`users/${id}`, data);
     return response.data as AdminUser;
 };
 
 export const deleteUser = async (id: number) => {
-    const response = await api.delete(`/users/${id}`);
+    const response = await api.delete(`users/${id}`);
     return response.data;
 };
 
@@ -142,12 +142,12 @@ export interface Permission {
 }
 
 export const getPermissions = async () => {
-    const response = await api.get('/settings/permissions');
+    const response = await api.get('settings/permissions');
     return response.data as Permission[];
 };
 
 export const updatePermissions = async (data: Permission[]) => {
-    const response = await api.post('/settings/permissions', data);
+    const response = await api.post('settings/permissions', data);
     return response.data;
 };
 
@@ -163,7 +163,7 @@ export interface Announcement {
 }
 
 export const getAnnouncements = async () => {
-    const response = await api.get<Announcement[]>('/announcements/');
+    const response = await api.get<Announcement[]>('announcements/');
     return response.data;
 };
 
@@ -178,6 +178,6 @@ export const createAnnouncement = async (data: {
 };
 
 export const deleteAnnouncement = async (id: number) => {
-    const response = await api.delete(`/announcements/${id}`);
+    const response = await api.delete(`announcements/${id}`);
     return response.data;
 };

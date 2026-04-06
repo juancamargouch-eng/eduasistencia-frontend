@@ -38,31 +38,31 @@ export interface ConflictDetail {
 export type ApiErrorDetail = string | ConflictDetail;
 
 export const getStudents = async (skip = 0, limit = 50, grade?: string, section?: string, search?: string) => {
-    const response = await api.get<StudentPaginationResponse>('/students/', {
+    const response = await api.get<StudentPaginationResponse>('students/', {
         params: { skip, limit, grade, section, search }
     });
     return response.data;
 };
 
 export const registerStudent = async (formData: FormData) => {
-    const response = await api.post('/students/register', formData);
+    const response = await api.post('students/register', formData);
     return response.data;
 };
 
 export const updateStudent = async (id: number, formData: FormData) => {
-    const response = await api.put(`/students/${id}`, formData);
+    const response = await api.put(`students/${id}`, formData);
     return response.data;
 };
 
 export const deleteStudent = async (id: number) => {
-    const response = await api.delete(`/students/${id}`);
+    const response = await api.delete(`students/${id}`);
     return response.data;
 };
 
 export const importStudents = async (file: File) => {
     const formData = new FormData();
     formData.append('file', file);
-    const response = await api.post('/students/import', formData, {
+    const response = await api.post('students/import', formData, {
         headers: {
             'Content-Type': 'multipart/form-data',
         },
@@ -76,7 +76,7 @@ export const enrollByDni = async (dni: string, file: File, faceDescriptor: strin
     formData.append('file', file);
     formData.append('face_descriptor', faceDescriptor);
 
-    const response = await api.patch('/students/enroll-by-dni', formData, {
+    const response = await api.patch('students/enroll-by-dni', formData, {
         headers: {
             'Content-Type': 'multipart/form-data',
         },
@@ -85,7 +85,7 @@ export const enrollByDni = async (dni: string, file: File, faceDescriptor: strin
 };
 
 export const checkPhotos = async (dnis: string[]) => {
-    const response = await api.post('/students/check-photos', dnis);
+    const response = await api.post('students/check-photos', dnis);
     return response.data as { dni: string, photo_url: string, s3_key: string }[];
 };
 
@@ -95,7 +95,7 @@ export const enrollByS3Key = async (dni: string, s3Key: string, faceDescriptor: 
     formData.append('s3_key', s3Key);
     formData.append('face_descriptor', faceDescriptor);
 
-    const response = await api.post('/students/enroll-by-s3-key', formData, {
+    const response = await api.post('students/enroll-by-s3-key', formData, {
         headers: {
             'Content-Type': 'multipart/form-data',
         },

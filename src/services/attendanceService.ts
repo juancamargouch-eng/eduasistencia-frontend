@@ -21,12 +21,12 @@ export interface AttendancePaginationResponse {
 }
 
 export const verifyAttendance = async (formData: FormData) => {
-    const response = await api.post('/attendance/verify', formData);
+    const response = await api.post('attendance/verify', formData);
     return response.data;
 };
 
 export const getAttendanceLogs = async (skip = 0, limit = 50) => {
-    const response = await api.get<AttendancePaginationResponse>('/attendance/logs', {
+    const response = await api.get<AttendancePaginationResponse>('attendance/logs', {
         params: { skip, limit }
     });
     return response.data;
@@ -47,17 +47,17 @@ export interface Justification extends JustificationCreate {
 }
 
 export const getJustifications = async () => {
-    const response = await api.get('/justifications/');
+    const response = await api.get('justifications/');
     return response.data as Justification[];
 };
 
 export const createJustification = async (data: JustificationCreate) => {
-    const response = await api.post('/justifications/', data);
+    const response = await api.post('justifications/', data);
     return response.data;
 };
 
 export const updateJustificationStatus = async (id: number, status: string) => {
-    const response = await api.put(`/justifications/${id}/status`, { status });
+    const response = await api.put(`justifications/${id}/status`, { status });
     return response.data;
 };
 
@@ -81,7 +81,7 @@ export const exportAttendanceReport = async (filters: ReportFilters) => {
     });
 
     const params = new URLSearchParams(cleanFilters).toString();
-    const response = await api.get(`/reports/attendance/export?${params}`, {
+    const response = await api.get(`reports/attendance/export?${params}`, {
         responseType: 'blob',
     });
     return response.data;
@@ -89,7 +89,7 @@ export const exportAttendanceReport = async (filters: ReportFilters) => {
 
 // Attendance Advanced
 export const validateAttendanceLog = async (id: number) => {
-    const response = await api.post(`/attendance/logs/${id}/validate`);
+    const response = await api.post(`attendance/logs/${id}/validate`);
     return response.data;
 };
 
@@ -104,7 +104,7 @@ export interface OccupancyPaginationResponse {
 }
 
 export const getOccupancyStats = async (skip = 0, limit = 50, grade?: string, section?: string) => {
-    const response = await api.get<OccupancyPaginationResponse>('/attendance/stats/occupancy', {
+    const response = await api.get<OccupancyPaginationResponse>('attendance/stats/occupancy', {
         params: { skip, limit, grade, section }
     });
     return response.data;
@@ -140,7 +140,7 @@ export const getDailyAttendance = async (
     skip = 0,
     limit = 50
 ) => {
-    const response = await api.get<DailyAttendancePaginationResponse>('/attendance/daily-status', {
+    const response = await api.get<DailyAttendancePaginationResponse>('attendance/daily-status', {
         params: { grade, section, date_str: date, schedule_id: scheduleId, skip, limit }
     });
     return response.data;
@@ -156,12 +156,12 @@ export interface StudentAbsencesResponse {
 }
 
 export const getStudentAbsences = async (dni: string) => {
-    const response = await api.get(`/attendance/student/${dni}/absences`);
+    const response = await api.get(`attendance/student/${dni}/absences`);
     return response.data as StudentAbsencesResponse;
 };
 
 export const getMonthlyStats = async () => {
-    const response = await api.get('/attendance/stats/monthly');
+    const response = await api.get('attendance/stats/monthly');
     return response.data;
 };
 
@@ -174,7 +174,7 @@ export interface AttendancePercentageData {
 }
 
 export const getAttendancePercentages = async (period: 'day' | 'week' | 'month' = 'month') => {
-    const response = await api.get<AttendancePercentageData>('/attendance/stats/percentages', {
+    const response = await api.get<AttendancePercentageData>('attendance/stats/percentages', {
         params: { period }
     });
     return response.data;
