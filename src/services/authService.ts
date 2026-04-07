@@ -1,4 +1,4 @@
-import api from './core';
+import api from './apiClient';
 
 export const login = async (username: string, password: string) => {
     const formData = new URLSearchParams();

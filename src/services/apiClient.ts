@@ -1,4 +1,6 @@
 import axios from 'axios';
+import { authStorage } from '../utils/authStorage';
+import { userStorage } from '../utils/userStorage';
 
 export type TabName = 'dashboard' | 'registration' | 'students' | 'reports' | 'justifications' | 'settings' | 'daily_attendance' | 'telegram' | 'occupancy' | 'tasks' | 'announcements' | 'users' | 'academic' | 'grades';
 
@@ -18,7 +20,7 @@ export const getStudentPhotoUrl = (photoUrl?: string) => {
         return `${cleanBase}${cleanPath}`;
     }
 
-    const token = localStorage.getItem('token');
+    const token = authStorage.getToken();
     const cleanApiUrl = API_URL?.endsWith('/') ? API_URL.slice(0, -1) : API_URL;
     const encodedKey = encodeURIComponent(photoUrl);
     const authParam = token ? `&token=${encodeURIComponent(token)}` : '';
@@ -34,8 +36,10 @@ const api = axios.create({
     baseURL: API_URL?.endsWith('/') ? API_URL : `${API_URL}/`,
 });
 
+let isLoggingOut = false;
+
 api.interceptors.request.use((config) => {
-    const token = localStorage.getItem('token');
+    const token = authStorage.getToken();
     if (token) {
         config.headers.Authorization = `Bearer ${token}`;
     }
@@ -43,11 +47,21 @@ api.interceptors.request.use((config) => {
 });
 
 api.interceptors.response.use(
-    (response) => response,
+    (response) => {
+        // Reset flag on successful responses if needed (or just keep it per-401 cycle)
+        return response;
+    },
     (error) => {
-        if (error.response && error.response.status === 401) {
-            localStorage.removeItem('token');
-            localStorage.removeItem('user');
+        if (error.response && error.response.status === 401 && !isLoggingOut) {
+            isLoggingOut = true;
+            
+            // Limpieza integral
+            authStorage.clear();
+            userStorage.clear();
+            
+            // Sincronización reactiva con AuthProvider y otras pestañas
+            window.dispatchEvent(new Event('logout'));
+            
             if (window.location.pathname !== '/login') {
                 window.location.href = '/login';
             }

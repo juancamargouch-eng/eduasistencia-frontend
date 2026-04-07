@@ -1,27 +1,27 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import type { ReactNode } from 'react';
 import { AuthContext } from './AuthContext';
-import { login as loginService, getMe } from '../services/api';
+import { login as loginService, getMe, default as api } from '../services/api';
 import type { ModulePermission } from '../utils/permissions';
-import axios from 'axios';
+import { authStorage } from '../utils/authStorage';
+import { userStorage } from '../utils/userStorage';
+import { DEFAULT_ROLE, PERMISSIONS_TTL } from '../utils/constants';
 
 interface AuthProviderProps {
     children: ReactNode;
 }
 
 export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
-    const [user, setUser] = useState<string | null>(localStorage.getItem('user'));
-    const [isSuperuser, setIsSuperuser] = useState<boolean>(localStorage.getItem('is_superuser') === 'true');
-    const [role, setRole] = useState<string | null>(localStorage.getItem('role'));
-    const [permissions, setPermissions] = useState<ModulePermission[]>([]);
+    const [user, setUser] = useState<string | null>(userStorage.getUser());
+    const [isSuperuser, setIsSuperuser] = useState<boolean>(userStorage.getIsSuperuser());
+    const [role, setRole] = useState<string | null>(userStorage.getRole());
+    const [permissions, setPermissions] = useState<ModulePermission[]>(userStorage.getPermissions() || []);
     const [loading, setLoading] = useState(true);
-    const [isAuthenticated, setIsAuthenticated] = useState<boolean>(!!localStorage.getItem('token'));
+    const [isAuthenticated, setIsAuthenticated] = useState<boolean>(!!authStorage.getToken());
 
     const logout = useCallback(() => {
-        localStorage.removeItem('token');
-        localStorage.removeItem('user');
-        localStorage.removeItem('is_superuser');
-        localStorage.removeItem('role');
+        authStorage.clear();
+        userStorage.clear();
         setUser(null);
         setIsSuperuser(false);
         setRole(null);
@@ -30,50 +30,98 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
     }, []);
 
     const fetchPermissions = useCallback(async () => {
-        const token = localStorage.getItem('token');
-        if (!token) return;
+        // Lógica de Cache Inteligente (TTL)
+        const cachedPermissions = userStorage.getPermissions();
+        const lastFetch = userStorage.getPermissionsTimestamp();
+        
+        if (cachedPermissions && (Date.now() - lastFetch < PERMISSIONS_TTL)) {
+            setPermissions(cachedPermissions);
+            return;
+        }
+
         try {
-            const response = await axios.get('http://localhost:8000/api/settings/permissions', {
-                headers: { Authorization: `Bearer ${token}` }
-            });
+            const response = await api.get('/settings/permissions');
             setPermissions(response.data);
+            userStorage.setPermissions(response.data);
         } catch (error) {
             console.error("Error fetching permissions:", error);
         }
     }, []);
 
+    // Sincronización proactiva (Nivel Senior)
+    useEffect(() => {
+        const handleLogoutEvent = () => logout();
+        
+        // Listener para eventos internos (interceptores)
+        window.addEventListener('logout', handleLogoutEvent);
+        
+        // Sincronización entre pestañas (Storage Event)
+        const handleStorageChange = (e: StorageEvent) => {
+            if (e.key === 'token' && !e.newValue) {
+                logout();
+            }
+        };
+        window.addEventListener('storage', handleStorageChange);
+
+        return () => {
+            window.removeEventListener('logout', handleLogoutEvent);
+            window.removeEventListener('storage', handleStorageChange);
+        };
+    }, [logout]);
+
     useEffect(() => {
         const initAuth = async () => {
-            const token = localStorage.getItem('token');
-            if (token) {
-                try {
-                    const userData = await getMe();
-                    setIsAuthenticated(true);
-                    setIsSuperuser(userData.is_superuser);
-                    setRole(userData.role);
-                    await fetchPermissions();
-                } catch (error) {
-                    console.error('Auth initialization failed:', error);
-                    logout();
-                }
+            const token = authStorage.getToken();
+            
+            // Salida temprana: Mejora UX y evita carga innecesaria
+            if (!token) {
+                setLoading(false);
+                return;
             }
-            setLoading(false);
+
+            try {
+                const userData = await getMe();
+                setIsAuthenticated(true);
+                setIsSuperuser(userData.is_superuser);
+                setRole(userData.role || DEFAULT_ROLE);
+                
+                // Persistencia de respaldo
+                userStorage.setUser(userData.username);
+                userStorage.setIsSuperuser(userData.is_superuser);
+                userStorage.setRole(userData.role || DEFAULT_ROLE);
+
+                await fetchPermissions();
+            } catch (error) {
+                console.error('Auth initialization failed:', error);
+                logout();
+            } finally {
+                setLoading(false);
+            }
         };
         initAuth();
     }, [fetchPermissions, logout]);
 
     const login = async (u: string, p: string) => {
-        const data = await loginService(u, p);
-        if (data.access_token) {
-            localStorage.setItem('token', data.access_token);
-            localStorage.setItem('user', u);
-            localStorage.setItem('is_superuser', String(data.is_superuser));
-            localStorage.setItem('role', data.role || 'DOCENTE');
-            setUser(u);
-            setIsSuperuser(data.is_superuser);
-            setRole(data.role);
-            setIsAuthenticated(true);
-            await fetchPermissions();
+        try {
+            const data = await loginService(u, p);
+            if (data.access_token) {
+                const roleValue = data.role || DEFAULT_ROLE;
+
+                authStorage.setToken(data.access_token);
+                userStorage.setUser(u);
+                userStorage.setIsSuperuser(data.is_superuser);
+                userStorage.setRole(roleValue);
+
+                setUser(u);
+                setIsSuperuser(data.is_superuser);
+                setRole(roleValue);
+                setIsAuthenticated(true);
+                
+                await fetchPermissions();
+            }
+        } catch (error) {
+            console.error("Login failed:", error);
+            throw error;
         }
     };
 

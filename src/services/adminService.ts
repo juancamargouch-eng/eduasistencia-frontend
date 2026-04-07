@@ -1,4 +1,4 @@
-import api from './core';
+import api from './apiClient';
 
 // Schedules
 export interface ScheduleData {

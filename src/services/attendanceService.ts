@@ -1,4 +1,4 @@
-import api from './core';
+import api from './apiClient';
 import type { Student } from './studentService';
 
 export interface AttendanceLog {

@@ -1,4 +1,4 @@
-import api from './core';
+import api from './apiClient';
 
 export interface Student {
     id: number;

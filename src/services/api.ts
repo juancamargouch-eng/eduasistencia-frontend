@@ -1,6 +1,6 @@
-import api from './core';
+import api from './apiClient';
 
-export * from './core';
+export * from './apiClient';
 export * from './authService';
 export * from './studentService';
 export * from './attendanceService';
