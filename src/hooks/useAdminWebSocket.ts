@@ -19,7 +19,7 @@ export const useAdminWebSocket = (onUpdate: () => void) => {
         const envWsUrl = import.meta.env.VITE_WS_URL;
         
         const fallbackProtocol = window.location.protocol === 'https:' ? 'wss:' : 'ws:';
-        const fallbackUrl = `${fallbackProtocol}//${window.location.hostname}:8000/ws`;
+        const fallbackUrl = `${fallbackProtocol}//${window.location.host}/ws`;
         
         const wsUrl = envWsUrl || fallbackUrl;
 
