@@ -15,10 +15,13 @@ export const useAdminWebSocket = (onUpdate: () => void) => {
     }, [onUpdate]);
 
     useEffect(() => {
-        const protocol = window.location.protocol === 'https:' ? 'wss:' : 'ws:';
-        const host = window.location.hostname;
-        const port = '8000'; // Backend port
-        const wsUrl = `${protocol}//${host}:${port}/ws`;
+        // Usar variable de entorno o cálculo dinámico como fallback
+        const envWsUrl = import.meta.env.VITE_WS_URL;
+        
+        const fallbackProtocol = window.location.protocol === 'https:' ? 'wss:' : 'ws:';
+        const fallbackUrl = `${fallbackProtocol}//${window.location.hostname}:8000/ws`;
+        
+        const wsUrl = envWsUrl || fallbackUrl;
 
         let socket: WebSocket;
         let reconnectTimeout: NodeJS.Timeout;
