@@ -41,6 +41,7 @@ export const useKioskLogic = (webcamRef: React.RefObject<Webcam | null>, resetCa
         setStatus('PROCESSING');
         setMessage('Procesando...');
         setSubMessage('Capturando biometría...');
+        setLastStudent(null);
 
         try {
             // HIGH PERFORMANCE BIOMETRICS: Symmetric size for consistent accuracy (matched with registration)
