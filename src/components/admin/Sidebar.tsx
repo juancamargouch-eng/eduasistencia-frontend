@@ -2,7 +2,7 @@ import { useNavigate, useLocation } from 'react-router-dom';
 import { useAuth } from '../../context/AuthContext';
 import { canAccessTab } from '../../utils/permissions';
 
-export type TabName = 'dashboard' | 'registration' | 'students' | 'reports' | 'justifications' | 'settings' | 'daily_attendance' | 'telegram' | 'occupancy' | 'tasks' | 'announcements' | 'users' | 'academic' | 'grades';
+export type TabName = 'dashboard' | 'registration' | 'students' | 'reports' | 'justifications' | 'settings' | 'daily_attendance' | 'telegram' | 'occupancy' | 'tasks' | 'announcements' | 'users' | 'academic' | 'grades' | 'audit';
 
 interface SidebarProps {
     isOpen: boolean;
@@ -81,6 +81,10 @@ const Sidebar: React.FC<SidebarProps> = ({ isOpen, closeSidebar }) => {
 
                 {hasAccess('users') && (
                     <NavItem id="users" icon="manage_accounts" label="Usuarios" activeTab={activeTab} navigate={navigate} onClick={closeSidebar} />
+                )}
+
+                {hasAccess('audit') && (
+                    <NavItem id="audit" icon="history_edu" label="Auditoría" activeTab={activeTab} navigate={navigate} onClick={closeSidebar} />
                 )}
                 
                 {(hasAccess('telegram') || hasAccess('settings')) && (

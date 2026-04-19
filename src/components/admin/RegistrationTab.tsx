@@ -129,9 +129,13 @@ const RegistrationTab: React.FC<RegistrationTabProps> = ({
                 {registeredQR ? (
                     <RegistrationSuccessCard qrCode={registeredQR} studentName={registeredName} photo={lastRegisteredPhoto} onReset={() => setRegisteredQR(null)} />
                 ) : (
-                    <div className="bg-white/40 dark:bg-slate-900/20 border-2 border-dashed border-slate-200 dark:border-slate-800 rounded-[3rem] p-12 text-center min-h-[600px] flex flex-col items-center justify-center text-slate-400 backdrop-blur-md group animate-in fade-in zoom-in duration-700">
+                    <div 
+                        className="bg-white/40 dark:bg-slate-900/20 border-2 border-dashed border-slate-200 dark:border-slate-800 rounded-[3rem] p-12 text-center min-h-[600px] flex flex-col items-center justify-center text-slate-400 backdrop-blur-md group animate-in fade-in zoom-in duration-700"
+                        role="status"
+                        aria-live="polite"
+                    >
                         <div className="w-32 h-32 bg-slate-100 dark:bg-slate-800/50 rounded-full flex items-center justify-center mb-8 border border-slate-200 dark:border-slate-800 group-hover:scale-110 transition-transform duration-500 shadow-inner">
-                            <span className="material-icons-outlined text-6xl opacity-30 group-hover:opacity-50 transition-opacity">qr_code_scanner</span>
+                            <span className="material-icons-outlined text-6xl opacity-30 group-hover:opacity-50 transition-opacity" aria-hidden="true">qr_code_scanner</span>
                         </div>
                         <p className="font-black uppercase tracking-[0.4em] text-xs opacity-50 mb-3">A la espera de registro</p>
                         <p className="text-[10px] font-bold opacity-30 max-w-[200px] leading-relaxed">Complete el formulario de la izquierda para generar la credencial biométrica</p>

@@ -50,19 +50,26 @@ export const useAdminDashboard = () => {
     }, [fetchPercentages]);
 
     const refreshAnalytics = useCallback(async () => {
+        // Cargar logs de asistencia (Independiente)
         try {
-            const [l, o] = await Promise.all([
-                getAttendanceLogs(0, 5), // Latest 5 logs for overview
-                getOccupancyStats(0, 10, '', '') // Stats globales sin filtros para el dashboard overview
-            ]);
-            setLogs(l.items); 
+            const l = await getAttendanceLogs(0, 5);
+            setLogs(l.items);
+        } catch (e) {
+            console.error("Error fetching logs:", e);
+        }
+
+        // Cargar estadísticas de ocupación (Independiente)
+        try {
+            const o = await getOccupancyStats(0, 10, '', '');
             setOccupancy({
                 total_entries: o.total_entries,
                 total_exits: o.total_exits,
                 current_count: o.current_count,
                 items: o.items
             });
-        } catch (e) { console.error(e); }
+        } catch (e) {
+            console.error("Error fetching occupancy stats:", e);
+        }
     }, []);
 
     const fetchSchedules = useCallback(async () => {

@@ -6,6 +6,7 @@ import { useStudentsTab } from '../../hooks/tabs/useStudentsTab';
 import ImportModal from '../ImportStudentsModal';
 import BulkPhotoCaptureModal from './BulkPhotoEnrollment';
 import StudentDetailsModal from '../StudentDetailsModal';
+import ConfirmModal from '../ui/ConfirmModal';
 
 interface StudentsTabProps {
     grades: string[];
@@ -19,11 +20,15 @@ const StudentsTab: React.FC<StudentsTabProps> = ({
         students,
         filterGrade, setFilterGrade,
         filterSection, setFilterSection,
+        search, setSearch,
         pagination, handlePageChange,
         showImportModal, setShowImportModal,
         showBulkPhotoModal, setShowBulkPhotoModal,
         selectedStudent, setSelectedStudent,
         handleStudentUpdate,
+        studentToDelete,
+        setStudentToDelete,
+        handleDelete,
         refresh
     } = useStudentsTab();
     const [viewMode, setViewMode] = useState<'list' | 'grid'>('grid');
@@ -71,6 +76,16 @@ const StudentsTab: React.FC<StudentsTabProps> = ({
                     <div className="h-10 w-[2px] bg-slate-200/50 dark:bg-slate-700/50 mx-2 hidden xl:block"></div>
 
                     <div className="flex gap-3">
+                        <div className="relative">
+                            <span className="material-icons absolute left-4 top-1/2 -translate-y-1/2 text-slate-400 text-base">search</span>
+                            <input
+                                type="text"
+                                placeholder="Buscar por DNI o Nombre..."
+                                className="pl-12 pr-6 py-3.5 rounded-2xl border-none bg-slate-100/50 dark:bg-slate-800/80 outline-none text-[10px] font-black uppercase tracking-widest focus:ring-4 focus:ring-primary/10 transition-all min-w-[250px]"
+                                value={search}
+                                onChange={e => setSearch(e.target.value)}
+                            />
+                        </div>
                         <div className="relative">
                             <select
                                 className="pl-6 pr-10 py-3.5 rounded-2xl border-none bg-slate-100/50 dark:bg-slate-800/80 outline-none text-[10px] font-black uppercase tracking-widest focus:ring-4 focus:ring-primary/10 transition-all appearance-none cursor-pointer"
@@ -154,12 +169,22 @@ const StudentsTab: React.FC<StudentsTabProps> = ({
                                         </div>
                                     </td>
                                     <td className="px-8 py-5 text-right">
-                                        <button
-                                            onClick={() => setSelectedStudent(student)}
-                                            className="w-12 h-12 rounded-2xl bg-indigo-50 dark:bg-indigo-500/5 text-indigo-500 hover:bg-indigo-500 hover:text-white transition-all inline-flex items-center justify-center group-hover:scale-110 shadow-sm"
-                                        >
-                                            <span className="material-icons-outlined text-xl">visibility</span>
-                                        </button>
+                                        <div className="flex justify-end gap-2">
+                                            <button
+                                                onClick={() => setSelectedStudent(student)}
+                                                className="w-12 h-12 rounded-2xl bg-indigo-50 dark:bg-indigo-500/5 text-indigo-500 hover:bg-indigo-500 hover:text-white transition-all inline-flex items-center justify-center group-hover:scale-110 shadow-sm"
+                                                title="Ver Detalle"
+                                            >
+                                                <span className="material-icons-outlined text-xl">visibility</span>
+                                            </button>
+                                            <button
+                                                onClick={() => setStudentToDelete(student.id)}
+                                                className="w-12 h-12 rounded-2xl bg-rose-50 dark:bg-rose-500/5 text-rose-500 hover:bg-rose-500 hover:text-white transition-all inline-flex items-center justify-center group-hover:scale-110 shadow-sm"
+                                                title="Eliminar Estudiante"
+                                            >
+                                                <span className="material-icons-outlined text-xl">delete</span>
+                                            </button>
+                                        </div>
                                     </td>
                                 </tr>
                             ))}
@@ -217,6 +242,15 @@ const StudentsTab: React.FC<StudentsTabProps> = ({
                                     {student.dni}
                                 </div>
                             </div>
+                            
+                            {/* Grid Delete Overlay */}
+                            <button 
+                                onClick={(e) => { e.stopPropagation(); setStudentToDelete(student.id); }}
+                                className="absolute -top-1 -left-1 w-10 h-10 bg-white dark:bg-slate-800 rounded-full border border-slate-200 dark:border-slate-700 shadow-xl flex items-center justify-center text-red-500 opacity-0 group-hover:opacity-100 transition-all hover:scale-110 active:scale-95 z-30"
+                                title="Eliminar Estudiante"
+                            >
+                                <span className="material-icons text-xl">delete_outline</span>
+                            </button>
                         </div>
                     ))}
                 </div>
@@ -275,6 +309,17 @@ const StudentsTab: React.FC<StudentsTabProps> = ({
                     onUpdate={handleStudentUpdate}
                 />
             )}
+
+            <ConfirmModal
+                isOpen={!!studentToDelete}
+                onClose={() => setStudentToDelete(null)}
+                onConfirm={handleDelete}
+                title="¿Eliminar Estudiante?"
+                description="Esta acción eliminará permanentemente al estudiante y sus registros de asistencia. ¿Deseas continuar?"
+                confirmText="Sí, Eliminar"
+                cancelText="Mantener"
+                type="danger"
+            />
         </div>
     );
 };

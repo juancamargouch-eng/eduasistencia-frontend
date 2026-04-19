@@ -62,9 +62,10 @@ const ImportStudentsModal: React.FC<ImportStudentsModalProps> = ({ onClose, onIm
                     await enrollByS3Key(photoInfo.dni, photoInfo.s3_key, JSON.stringify(Array.from(detection.descriptor)));
 
                     setSyncStatus(prev => prev.map(s => s.dni === photoInfo.dni ? { ...s, status: 'success' } : s));
-                } catch (err: any) {
+                } catch (err: unknown) {
                     console.error(`Error procesando foto S3 para ${photoInfo.dni}:`, err);
-                    setSyncStatus(prev => prev.map(s => s.dni === photoInfo.dni ? { ...s, status: 'error', message: err.message } : s));
+                    const errorMessage = err instanceof Error ? err.message : 'Error desconocido';
+                    setSyncStatus(prev => prev.map(s => s.dni === photoInfo.dni ? { ...s, status: 'error', message: errorMessage } : s));
                 }
 
                 setSyncProgress(Math.round(((i + 1) / foundPhotos.length) * 100));
@@ -91,7 +92,7 @@ const ImportStudentsModal: React.FC<ImportStudentsModalProps> = ({ onClose, onIm
                     const workbook = XLSX.read(data, { type: 'binary' });
                     const sheetName = workbook.SheetNames[0];
                     const sheet = workbook.Sheets[sheetName];
-                    const json: any[] = XLSX.utils.sheet_to_json(sheet);
+                    const json: any[] = XLSX.utils.sheet_to_json(sheet); // eslint-disable-line @typescript-eslint/no-explicit-any
 
                     const dnis = json.map(row => {
                         const dniKey = Object.keys(row).find(k => k.toLowerCase().includes('dni'));
@@ -233,10 +234,18 @@ const ImportStudentsModal: React.FC<ImportStudentsModalProps> = ({ onClose, onIm
                         </div>
 
                         {result.errors.length > 0 && (
-                            <div className="bg-red-50 dark:bg-red-500/5 p-4 rounded-2xl text-left mb-8 max-h-40 overflow-y-auto border border-red-100 dark:border-red-500/10">
-                                <p className="text-[10px] font-black text-red-700 dark:text-red-400 uppercase tracking-widest mb-2">Errores de Fila ({result.errors.length}):</p>
-                                <ul className="space-y-1 text-[10px] text-red-600 dark:text-red-300 font-bold uppercase">
-                                    {result.errors.map((e, i) => <li key={i} className="flex gap-2"><span>-</span> {e}</li>)}
+                            <div className="bg-red-50/50 dark:bg-red-500/5 p-6 rounded-[2rem] text-left mb-8 border border-red-100 dark:border-red-500/10 shadow-inner">
+                                <div className="flex items-center gap-2 mb-4">
+                                    <span className="material-icons text-red-500 text-lg">warning_amber</span>
+                                    <p className="text-[10px] font-black text-red-700 dark:text-red-400 uppercase tracking-widest">Observaciones ({result.errors.length})</p>
+                                </div>
+                                <ul className="space-y-2 max-h-40 overflow-y-auto pr-2 custom-scrollbar">
+                                    {result.errors.map((e, i) => (
+                                        <li key={i} className="flex gap-3 text-[10px] font-bold text-slate-600 dark:text-red-300 leading-tight">
+                                            <span className="text-red-400 shrink-0">•</span>
+                                            <span className="uppercase">{e}</span>
+                                        </li>
+                                    ))}
                                 </ul>
                             </div>
                         )}

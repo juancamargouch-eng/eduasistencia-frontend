@@ -2,7 +2,7 @@ import { useState, useCallback } from 'react';
 import * as faceapi from 'face-api.js';
 import { AxiosError } from 'axios';
 import Webcam from 'react-webcam';
-import { verifyAttendance, type Student, type ConflictDetail, type ApiErrorDetail } from '../services/api';
+import { verifyAttendance, type Student, type ConflictDetail } from '../services/api';
 import { audioService } from '../services/audio';
 
 export type KioskStatus = 'IDLE' | 'PROCESSING' | 'SUCCESS' | 'WARNING' | 'ERROR';
@@ -27,6 +27,16 @@ export const useKioskLogic = (webcamRef: React.RefObject<Webcam | null>, resetCa
     const handleVerification = async (qrCode?: string, dni?: string) => {
         // Only block if already processing.
         if (status === 'PROCESSING') return;
+
+        // OFFLINE CHECK
+        if (!window.navigator.onLine) {
+            setStatus('ERROR');
+            setMessage('Sin Conexión');
+            setSubMessage('El kiosko requiere internet para operar');
+            audioService.playError();
+            setResetTimeout(setTimeout(reset, 3000));
+            return;
+        }
 
         // INSTANT CLEANUP: If there was a success/error modal, clear it immediately
         if (resetTimeout) {
@@ -69,8 +79,8 @@ export const useKioskLogic = (webcamRef: React.RefObject<Webcam | null>, resetCa
             if (dni) formData.append('dni', dni);
             formData.append('face_descriptor', JSON.stringify(descriptor));
 
-            // Extraer el ID del dispositivo (ej. configurado previamente por Admin en este Kiosko/Tablet)
-            const deviceId = localStorage.getItem('kiosk_device_id') || 'Dispositivo Desconocido';
+            // Extraer el ID único del dispositivo (Enrolamiento Punto 3)
+            const deviceId = localStorage.getItem('kiosk_device_id') || 'desconocido';
             formData.append('device_source', deviceId);
 
             if (imageSrc) {
@@ -113,9 +123,11 @@ export const useKioskLogic = (webcamRef: React.RefObject<Webcam | null>, resetCa
 
         } catch (err: unknown) {
             console.error(err);
-            const error = err as AxiosError<{ detail: ApiErrorDetail }>;
-            if (error.response?.status === 409) {
-                const detail = error.response.data.detail;
+            const error = err as AxiosError<{ detail: any }>; // eslint-disable-line @typescript-eslint/no-explicit-any
+            const status_code = error.response?.status;
+            const detail = (error as any).response?.data?.detail;
+
+            if (status_code === 409) {
                 setStatus('WARNING');
                 setMessage('Ya MARCO ASISTENCIA');
                 audioService.playNotification();
@@ -127,10 +139,21 @@ export const useKioskLogic = (webcamRef: React.RefObject<Webcam | null>, resetCa
                 } else {
                     setSubMessage(typeof detail === 'string' ? detail : 'Asistencia ya registrada hoy');
                 }
+            } else if (status_code === 400 && detail?.failure_reason === 'BIOMETRIC_REQUIRED') {
+                // Punto 5: Bloqueo de DNI sin biometría
+                setStatus('ERROR');
+                setMessage('Falta Registro');
+                setSubMessage(detail.message || 'Debe registrar su biometría en administración.');
+                audioService.playError();
+            } else if (status_code === 401) {
+                // Punto 3: Dispositivo no autorizado
+                setStatus('ERROR');
+                setMessage('Punto no Autorizado');
+                setSubMessage('Esta computadora no tiene permiso para capturar asistencia.');
+                audioService.playError();
             } else {
                 setStatus('ERROR');
                 setMessage('Error del Sistema');
-                const detail = error.response?.data?.detail;
                 setSubMessage(typeof detail === 'string' ? detail : 'Error de conexión');
                 audioService.playError();
             }

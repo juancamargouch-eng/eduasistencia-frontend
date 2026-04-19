@@ -48,24 +48,26 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
         }
     }, []);
 
-    // Sincronización proactiva (Nivel Senior)
+    // Sincronización proactiva entre pestañas (Excelencia Punto 10)
     useEffect(() => {
         const handleLogoutEvent = () => logout();
         
-        // Listener para eventos internos (interceptores)
+        // Listener para eventos internos del sistema (interceptores 401)
         window.addEventListener('logout', handleLogoutEvent);
         
-        // Sincronización entre pestañas (Storage Event)
-        const handleStorageChange = (e: StorageEvent) => {
-            if (e.key === 'token' && !e.newValue) {
+        // Sincronización entre pestañas vía BroadcastChannel (más confiable que StorageEvent)
+        const unsubscribe = authStorage.subscribe((type) => {
+            if (type === 'LOGOUT') {
                 logout();
+            } else if (type === 'LOGIN') {
+                // Si otra pestaña se logueó, podríamos recargar para obtener el nuevo estado
+                window.location.reload();
             }
-        };
-        window.addEventListener('storage', handleStorageChange);
+        });
 
         return () => {
             window.removeEventListener('logout', handleLogoutEvent);
-            window.removeEventListener('storage', handleStorageChange);
+            unsubscribe();
         };
     }, [logout]);
 
@@ -108,6 +110,9 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
                 const roleValue = data.role || DEFAULT_ROLE;
 
                 authStorage.setToken(data.access_token);
+                if (data.refresh_token) {
+                    authStorage.setRefreshToken(data.refresh_token);
+                }
                 userStorage.setUser(u);
                 userStorage.setIsSuperuser(data.is_superuser);
                 userStorage.setRole(roleValue);

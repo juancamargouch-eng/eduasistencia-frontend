@@ -63,7 +63,7 @@ export const useAcademic = () => {
             setSettings(stts);
             // Filter only teachers
             setTeachers(usrs.filter(u => u.role === 'DOCENTE' && u.is_active));
-        } catch (error) {
+        } catch {
             toast.error("Error al cargar datos maestros académicos");
         } finally {
             setLoading(false);
@@ -84,8 +84,8 @@ export const useAcademic = () => {
             setCourses([...courses, added]);
             setNewCourseName('');
             toast.success("Curso creado!");
-        } catch (err: any) {
-            toast.error(err.response?.data?.detail || "Error al crear curso");
+        } catch (err: unknown) {
+            toast.error((err as any).response?.data?.detail || "Error al crear curso");
         } finally {
             setIsSubmitting(false);
         }
@@ -102,8 +102,8 @@ export const useAcademic = () => {
             setNewPeriodStart('');
             setNewPeriodEnd('');
             toast.success("Periodo creado!");
-        } catch (err: any) {
-            toast.error(err.response?.data?.detail || "Error al crear periodo");
+        } catch (err: unknown) {
+            toast.error((err as any).response?.data?.detail || "Error al crear periodo");
         } finally {
             setIsSubmitting(false);
         }
@@ -119,8 +119,8 @@ export const useAcademic = () => {
             setNewCriteriaName('');
             setNewCriteriaWeight(0);
             toast.success("Criterio creado!");
-        } catch (err: any) {
-            toast.error(err.response?.data?.detail || "Error al crear criterio");
+        } catch (err: unknown) {
+            toast.error((err as any).response?.data?.detail || "Error al crear criterio");
         } finally {
             setIsSubmitting(false);
         }
@@ -139,69 +139,110 @@ export const useAcademic = () => {
             });
             await loadData();
             toast.success("Asignación completada!");
-        } catch (err: any) {
-            toast.error(err.response?.data?.detail || "Error al asignar");
+        } catch (err: unknown) {
+            toast.error((err as any).response?.data?.detail || "Error al asignar");
         } finally {
             setIsSubmitting(false);
         }
     };
 
-    const handleToggleGradingSystem = async (system: 'NUMERIC' | 'LITERAL') => {
+    const handleUpdateSettings = async (newData: Partial<AcademicSetting>) => {
         setIsSubmitting(true);
         try {
-            const updated = await updateSettings({ grading_system: system });
+            if (!newData.grading_system) {
+                toast.error("Sistema de calificación es requerido");
+                setIsSubmitting(false);
+                return;
+            }
+            const updated = await updateSettings({ grading_system: newData.grading_system });
             setSettings(updated);
-            toast.success(`Sistema cambiado a: ${system === 'NUMERIC' ? 'Numérico' : 'Letras'}`);
-        } catch (error) {
+            toast.success("Configuración actualizada correctamente");
+        } catch {
             toast.error("Error al actualizar configuración");
         } finally {
             setIsSubmitting(false);
         }
     };
 
+    const [confirmModal, setConfirmModal] = useState<{
+        open: boolean;
+        title: string;
+        description: string;
+        onConfirm: () => void;
+        type: 'danger' | 'warning' | 'info';
+    }>({ open: false, title: '', description: '', onConfirm: () => {}, type: 'info' });
+
     // Delete Handlers
-    const handleDeleteCourse = async (id: number) => {
-        if (!window.confirm("¿Está seguro de eliminar este curso?")) return;
-        try {
-            await deleteCourse(id);
-            setCourses(courses.filter(c => c.id !== id));
-            toast.success("Curso eliminado");
-        } catch (err: any) {
-            toast.error(err.response?.data?.detail || "Error al eliminar");
-        }
+    const handleDeleteCourse = (id: number) => {
+        setConfirmModal({
+            open: true,
+            title: 'Eliminar Curso',
+            description: '¿Está seguro de eliminar este curso? Esta acción no se puede deshacer.',
+            type: 'danger',
+            onConfirm: async () => {
+                try {
+                    await deleteCourse(id);
+                    setCourses(courses.filter(c => c.id !== id));
+                    toast.success("Curso eliminado");
+                } catch (err: unknown) {
+                    toast.error((err as any).response?.data?.detail || "Error al eliminar");
+                }
+            }
+        });
     };
 
-    const handleDeletePeriod = async (id: number) => {
-        if (!window.confirm("¿Está seguro de eliminar este periodo?")) return;
-        try {
-            await deletePeriod(id);
-            setPeriods(periods.filter(p => p.id !== id));
-            toast.success("Periodo eliminado");
-        } catch (err: any) {
-            toast.error(err.response?.data?.detail || "Error al eliminar");
-        }
+    const handleDeletePeriod = (id: number) => {
+        setConfirmModal({
+            open: true,
+            title: 'Eliminar Periodo',
+            description: '¿Está seguro de eliminar este periodo académico?',
+            type: 'danger',
+            onConfirm: async () => {
+                try {
+                    await deletePeriod(id);
+                    setPeriods(periods.filter(p => p.id !== id));
+                    toast.success("Periodo eliminado");
+                } catch (err: unknown) {
+                    toast.error((err as any).response?.data?.detail || "Error al eliminar");
+                }
+            }
+        });
     };
 
-    const handleDeleteCriteria = async (id: number) => {
-        if (!window.confirm("¿Está seguro de eliminar este criterio?")) return;
-        try {
-            await deleteCriteria(id);
-            setCriteria(criteria.filter(c => c.id !== id));
-            toast.success("Criterio eliminado");
-        } catch (err: any) {
-            toast.error(err.response?.data?.detail || "Error al eliminar");
-        }
+    const handleDeleteCriteria = (id: number) => {
+        setConfirmModal({
+            open: true,
+            title: 'Eliminar Criterio',
+            description: '¿Está seguro de eliminar este criterio de evaluación?',
+            type: 'danger',
+            onConfirm: async () => {
+                try {
+                    await deleteCriteria(id);
+                    setCriteria(criteria.filter(c => c.id !== id));
+                    toast.success("Criterio eliminado");
+                } catch (err: unknown) {
+                    toast.error((err as any).response?.data?.detail || "Error al eliminar");
+                }
+            }
+        });
     };
 
-    const handleDeleteAssignment = async (id: number) => {
-        if (!window.confirm("¿Está seguro de eliminar esta asignación?")) return;
-        try {
-            await deleteAssignment(id);
-            setAssignments(assignments.filter(a => a.id !== id));
-            toast.success("Asignación eliminada");
-        } catch (err: any) {
-            toast.error(err.response?.data?.detail || "Error al eliminar");
-        }
+    const handleDeleteAssignment = (id: number) => {
+        setConfirmModal({
+            open: true,
+            title: 'Eliminar Asignación',
+            description: '¿Está seguro de eliminar esta asignación de docente?',
+            type: 'danger',
+            onConfirm: async () => {
+                try {
+                    await deleteAssignment(id);
+                    setAssignments(assignments.filter(a => a.id !== id));
+                    toast.success("Asignación eliminada");
+                } catch (err: unknown) {
+                    toast.error((err as any).response?.data?.detail || "Error al eliminar");
+                }
+            }
+        });
     };
 
     // Edit Handlers
@@ -276,8 +317,8 @@ export const useAcademic = () => {
             }
             
             setIsEditModalOpen(false);
-        } catch (err: any) {
-            toast.error(err.response?.data?.detail || "Error al guardar cambios");
+        } catch (err: unknown) {
+            toast.error((err as any).response?.data?.detail || "Error al guardar cambios");
         } finally {
             setIsSubmitting(false);
         }
@@ -314,6 +355,8 @@ export const useAcademic = () => {
         handleCreateCourse, handleCreatePeriod, handleCreateCriteria, handleCreateAssignment,
         handleDeleteCourse, handleDeletePeriod, handleDeleteCriteria, handleDeleteAssignment,
         handleEditCourse, handleEditPeriod, handleEditCriteria, handleEditAssignment,
-        handleSaveEdit, handleToggleGradingSystem
+        handleSaveEdit, handleUpdateSettings,
+        
+        confirmModal, setConfirmModal
     };
 };

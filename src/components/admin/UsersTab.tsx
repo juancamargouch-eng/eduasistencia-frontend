@@ -1,5 +1,5 @@
-import React from 'react';
 import { useUsersTab } from '../../hooks/tabs/useUsersTab';
+import ConfirmModal from '../ui/ConfirmModal';
 
 interface UsersTabProps {
     isActiveTab: boolean;
@@ -8,7 +8,8 @@ interface UsersTabProps {
 const UsersTab: React.FC<UsersTabProps> = ({ isActiveTab }) => {
     const {
         users, loading, form, setForm, 
-        editingUser, handleEdit, handleCancel, handleSubmit, handleDelete 
+        editingUser, handleEdit, handleCancel, handleSubmit, 
+        handleDelete, userToDelete, setUserToDelete
     } = useUsersTab();
 
     if (!isActiveTab) return null;
@@ -51,17 +52,40 @@ const UsersTab: React.FC<UsersTabProps> = ({ isActiveTab }) => {
                                     placeholder={editingUser ? "Dejar vacío para no cambiar" : "****"} 
                                 />
                             </div>
-                            <div className="space-y-2">
-                                <p className="text-[9px] font-black text-slate-400 uppercase tracking-[0.3em] ml-1">Rol del Sistema</p>
-                                <select className="w-full px-6 py-4 rounded-2xl bg-white/50 dark:bg-slate-800 border-none outline-none focus:ring-4 focus:ring-primary/20 transition-all font-bold text-sm appearance-none" value={form.role} onChange={e => setForm({...form, role: e.target.value})}>
-                                    <option value="DOCENTE">DOCENTE</option>
-                                    <option value="DIRECTOR">DIRECTOR</option>
-                                    <option value="ADMIN">ADMIN</option>
-                                </select>
+                        <div className="space-y-3">
+                            <p className="text-[9px] font-black text-slate-400 uppercase tracking-[0.3em] ml-1">Rol del Sistema</p>
+                            <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+                                {[
+                                    { id: 'ADMIN', icon: 'settings_suggest', desc: 'Gestión Total' },
+                                    { id: 'DIRECTOR', icon: 'school', desc: 'Control Acad.' },
+                                    { id: 'DOCENTE', icon: 'edit_note', desc: 'Registro Notas' }
+                                ].map((role) => (
+                                    <button
+                                        key={role.id}
+                                        type="button"
+                                        onClick={() => setForm({...form, role: role.id})}
+                                        className={`flex flex-col items-center gap-2 p-4 rounded-2xl border-2 transition-all group ${
+                                            form.role === role.id 
+                                            ? 'bg-primary/5 border-primary shadow-lg shadow-primary/5' 
+                                            : 'bg-white dark:bg-slate-800 border-slate-100 dark:border-slate-800 hover:border-slate-200'
+                                        }`}
+                                    >
+                                        <span className={`material-icons-outlined text-xl ${form.role === role.id ? 'text-primary' : 'text-slate-400 group-hover:text-slate-600 transition-colors'}`}>
+                                            {role.icon}
+                                        </span>
+                                        <div className="text-center">
+                                            <p className={`text-[10px] font-black uppercase tracking-widest ${form.role === role.id ? 'text-primary' : 'text-slate-500'}`}>
+                                                {role.id}
+                                            </p>
+                                            <p className="text-[8px] font-bold text-slate-400 mt-0.5 leading-none">{role.desc}</p>
+                                        </div>
+                                    </button>
+                                ))}
                             </div>
                         </div>
+                    </div>
 
-                        <div className="flex items-center gap-8 py-2">
+                    <div className="flex items-center gap-8 py-2">
                             <label className="flex items-center gap-3 cursor-pointer group">
                                 <input type="checkbox" className="hidden" checked={form.is_superuser} onChange={e => setForm({...form, is_superuser: e.target.checked})} />
                                 <div className={`w-12 h-6 rounded-full transition-all relative ${form.is_superuser ? 'bg-primary' : 'bg-slate-200 dark:bg-slate-700'}`}>
@@ -144,15 +168,17 @@ const UsersTab: React.FC<UsersTabProps> = ({ isActiveTab }) => {
                                         onClick={() => handleEdit(u)}
                                         className="w-10 h-10 flex items-center justify-center text-primary bg-primary/10 dark:bg-primary/5 rounded-xl transition-all hover:bg-primary hover:text-white"
                                         title="Editar Usuario"
+                                        aria-label={`Editar usuario ${u.username}`}
                                     >
-                                        <span className="material-icons-outlined text-lg">edit</span>
+                                        <span className="material-icons-outlined text-lg" aria-hidden="true">edit</span>
                                     </button>
                                     <button
-                                        onClick={() => handleDelete(u.id)}
+                                        onClick={() => setUserToDelete(u.id)}
                                         className="w-10 h-10 flex items-center justify-center text-red-500 bg-red-500/10 dark:bg-red-500/5 rounded-xl transition-all hover:bg-red-500 hover:text-white"
                                         title="Eliminar Usuario"
+                                        aria-label={`Eliminar usuario ${u.username}`}
                                     >
-                                        <span className="material-icons-outlined text-lg">delete</span>
+                                        <span className="material-icons-outlined text-lg" aria-hidden="true">delete</span>
                                     </button>
                                 </div>
                             </div>
@@ -160,6 +186,17 @@ const UsersTab: React.FC<UsersTabProps> = ({ isActiveTab }) => {
                     </div>
                 </div>
             </div>
+
+            <ConfirmModal
+                isOpen={!!userToDelete}
+                onClose={() => setUserToDelete(null)}
+                onConfirm={handleDelete}
+                title="¿Eliminar Usuario?"
+                description="Esta acción desactiva el acceso de este usuario permanentemente. ¿Estás seguro?"
+                confirmText="Sí, Eliminar"
+                cancelText="Mantener"
+                type="danger"
+            />
         </div>
     );
 };

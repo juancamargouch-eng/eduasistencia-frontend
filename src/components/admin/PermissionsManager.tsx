@@ -29,7 +29,8 @@ const PermissionsManager: React.FC = () => {
         settings: 'Ajustes',
         users: 'Usuarios (Personal)',
         academic: 'Gestión Académica',
-        grades: 'Libreta de Calificaciones'
+        grades: 'Libreta de Calificaciones',
+        audit: 'Auditoría'
     };
 
     useEffect(() => {

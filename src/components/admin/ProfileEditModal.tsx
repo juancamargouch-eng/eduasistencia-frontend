@@ -77,7 +77,7 @@ const ProfileEditModal: React.FC<ProfileEditModalProps> = ({ isOpen, onClose, on
             onClose();
         } catch (error: unknown) {
             const err = error as { response?: { data?: { detail?: string } } };
-            toast.error(err.response?.data?.detail || "Error al actualizar perfil");
+            toast.error((err as any).response?.data?.detail || "Error al actualizar perfil");
         } finally {
             setLoading(false);
         }

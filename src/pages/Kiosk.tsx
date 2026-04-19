@@ -15,6 +15,18 @@ const Kiosk: React.FC = () => {
     const [showManual, setShowManual] = useState(false);
     const [manualDni, setManualDni] = useState('');
     const [deviceId, setDeviceId] = useState(() => localStorage.getItem('kiosk_device_id') || 'Configurar Dispositivo');
+    const [isOnline, setIsOnline] = useState(window.navigator.onLine);
+
+    useEffect(() => {
+        const handleOnline = () => setIsOnline(true);
+        const handleOffline = () => setIsOnline(false);
+        window.addEventListener('online', handleOnline);
+        window.addEventListener('offline', handleOffline);
+        return () => {
+            window.removeEventListener('online', handleOnline);
+            window.removeEventListener('offline', handleOffline);
+        };
+    }, []);
 
     const handleDeviceSetup = () => {
         const newId = prompt("Ingrese el identificador para este Kiosko (ej. 'Tablet Entrada Principal'):", deviceId);
@@ -83,6 +95,10 @@ const Kiosk: React.FC = () => {
                         <div className="hidden md:flex flex-col cursor-pointer hover:opacity-80 transition-opacity" onDoubleClick={handleDeviceSetup} title="Doble clic para configurar ID del Kiosko">
                             <span className="text-white font-black text-sm tracking-tighter leading-none">VerifID</span>
                             <span className="text-white/80 text-[9px] font-black uppercase tracking-[0.2em] mt-0.5 max-w-[150px] truncate">{deviceId}</span>
+                        </div>
+                        <div className={`ml-4 px-3 py-1 rounded-full flex items-center gap-2 border ${isOnline ? 'bg-emerald-500/20 border-emerald-400/50 text-white' : 'bg-red-500/20 border-red-400/50 text-white animate-pulse'}`}>
+                            <div className={`w-1.5 h-1.5 rounded-full ${isOnline ? 'bg-emerald-400' : 'bg-red-400'}`} />
+                            <span className="text-[8px] font-black uppercase tracking-widest leading-none">{isOnline ? 'En Línea' : 'Desconectado'}</span>
                         </div>
                     </div>
 

@@ -23,6 +23,7 @@ import PermissionsManager from '../components/admin/PermissionsManager';
 import TasksTab from '../components/admin/TasksTab';
 import AcademicTab from '../components/admin/AcademicTab';
 import GradesTab from '../components/admin/GradesTab';
+import AuditLogsTab from '../components/admin/AuditLogsTab';
 
 const AdminDashboard: React.FC = () => {
     const { isSuperuser, role, permissions } = useAuth();
@@ -79,6 +80,9 @@ const AdminDashboard: React.FC = () => {
             
             {/* Gestión de Usuarios (Sólo para Super Admin) */}
             {activeTab === 'users' && hasAccess('users') && <UsersTab isActiveTab={activeTab === 'users'} />}
+            
+            {/* Registro de Auditoría */}
+            {activeTab === 'audit' && hasAccess('audit') && <AuditLogsTab />}
 
         </AdminLayout>
     );

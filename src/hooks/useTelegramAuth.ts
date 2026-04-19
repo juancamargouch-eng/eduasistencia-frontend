@@ -70,7 +70,7 @@ export const useTelegramAuth = () => {
             toast.success("Código enviado a su Telegram");
         } catch (err: unknown) {
             const error = err as AxiosError<{ detail: string }>;
-            toast.error(error.response?.data?.detail || "Error al enviar código");
+            toast.error((error as any).response?.data?.detail || "Error al enviar código");
         } finally {
             setSaving(false);
         }
@@ -98,7 +98,7 @@ export const useTelegramAuth = () => {
             }
         } catch (err: unknown) {
             const error = err as AxiosError<{ detail: string }>;
-            toast.error(error.response?.data?.detail || "Error en la verificación");
+            toast.error((error as any).response?.data?.detail || "Error en la verificación");
         } finally {
             setSaving(false);
         }

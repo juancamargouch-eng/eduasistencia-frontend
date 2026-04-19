@@ -4,6 +4,7 @@ import Button from '../../ui/Button';
 import Card from '../../ui/Card';
 import Badge from '../../ui/Badge';
 import { toast } from 'sonner';
+import { getStudentPhotoUrl } from '../../../services/apiClient';
 
 interface RegistrationSuccessCardProps {
     qrCode: string;
@@ -39,7 +40,7 @@ const RegistrationSuccessCard: React.FC<RegistrationSuccessCardProps> = ({ qrCod
                 <div className="w-full bg-slate-50 dark:bg-slate-800/50 rounded-3xl p-6 border border-slate-100 dark:border-slate-800 mb-8 flex items-center gap-6 text-left">
                     <div className="w-24 h-32 rounded-2xl overflow-hidden bg-slate-200 dark:bg-slate-700 flex-shrink-0 shadow-lg">
                         {photo ? (
-                            <img src={photo} alt="" className="w-full h-full object-cover" />
+                            <img src={getStudentPhotoUrl(photo) || ''} alt="" className="w-full h-full object-cover" />
                         ) : (
                             <div className="w-full h-full flex items-center justify-center">
                                 <span className="material-icons text-slate-400 text-3xl">person</span>

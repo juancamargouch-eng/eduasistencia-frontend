@@ -1,5 +1,6 @@
 import { useEffect, useCallback } from 'react';
 import { toast } from 'sonner';
+import { authStorage } from '../utils/authStorage';
 
 interface WebSocketMessage {
     event: string;
@@ -22,12 +23,14 @@ export const useAdminWebSocket = (onUpdate: () => void) => {
         const fallbackUrl = `${fallbackProtocol}//${window.location.host}/ws`;
         
         const wsUrl = envWsUrl || fallbackUrl;
+        const token = authStorage.getToken();
+        const authenticatedWsUrl = token ? `${wsUrl}?token=${token}` : wsUrl;
 
         let socket: WebSocket;
         let reconnectTimeout: NodeJS.Timeout;
 
         const connect = () => {
-            socket = new WebSocket(wsUrl);
+            socket = new WebSocket(authenticatedWsUrl);
 
             socket.onopen = () => {
                 console.log('Connected to WebSocket');

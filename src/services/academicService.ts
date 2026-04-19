@@ -73,6 +73,10 @@ export interface Grade {
 export interface AcademicSetting {
     id: number;
     grading_system: string; // 'NUMERIC' | 'LITERAL'
+    late_tolerance_minutes: number;
+    template_entry?: string;
+    template_exit?: string;
+    template_late?: string;
     updated_at: string;
 }
 

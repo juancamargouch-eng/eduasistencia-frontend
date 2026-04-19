@@ -52,13 +52,13 @@ const AcademicModal: React.FC<AcademicModalProps> = ({ logic }) => {
                                 label="Inicio"
                                 type="date"
                                 value={editForm.start_date || ''}
-                                onChange={(e: any) => setEditForm({...editForm, start_date: e.target.value})}
+                                onChange={(e: any) => setEditForm({...editForm, start_date: e.target.value})} // eslint-disable-line @typescript-eslint/no-explicit-any
                             />
                             <Input 
                                 label="Fin"
                                 type="date"
                                 value={editForm.end_date || ''}
-                                onChange={(e: any) => setEditForm({...editForm, end_date: e.target.value})}
+                                onChange={(e: any) => setEditForm({...editForm, end_date: e.target.value})} // eslint-disable-line @typescript-eslint/no-explicit-any
                             />
                         </div>
                     </div>
@@ -76,7 +76,7 @@ const AcademicModal: React.FC<AcademicModalProps> = ({ logic }) => {
                             label="Peso Porcentual (%)"
                             type="number"
                             value={editForm.weight || ''}
-                            onChange={(e: any) => setEditForm({...editForm, weight: e.target.value})}
+                            onChange={(e: any) => setEditForm({...editForm, weight: e.target.value})} // eslint-disable-line @typescript-eslint/no-explicit-any
                             icon="percent"
                         />
                     </div>

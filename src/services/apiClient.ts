@@ -37,33 +37,99 @@ const api = axios.create({
 });
 
 let isLoggingOut = false;
+let isRefreshing = false;
+let failedQueue: any[] = []; // eslint-disable-line @typescript-eslint/no-explicit-any
+
+const processQueue = (error: any, token: string | null = null) => { // eslint-disable-line @typescript-eslint/no-explicit-any
+    failedQueue.forEach(prom => {
+        if (error) {
+            prom.reject(error);
+        } else {
+            prom.resolve(token);
+        }
+    });
+    failedQueue = [];
+};
 
 api.interceptors.request.use((config) => {
     const token = authStorage.getToken();
     if (token) {
         config.headers.Authorization = `Bearer ${token}`;
     }
+
+    // Inyectar credenciales de dispositivo (Excelencia Punto 3)
+    const deviceId = localStorage.getItem('kiosk_device_id');
+    const deviceSecret = localStorage.getItem('kiosk_device_secret');
+    
+    if (deviceId) {
+        config.headers['X-Device-ID'] = deviceId;
+    }
+    if (deviceSecret) {
+        config.headers['X-Device-Secret'] = deviceSecret;
+    }
+
     return config;
 });
 
 api.interceptors.response.use(
-    (response) => {
-        // Reset flag on successful responses if needed (or just keep it per-401 cycle)
-        return response;
-    },
-    (error) => {
-        if (error.response && error.response.status === 401 && !isLoggingOut) {
-            isLoggingOut = true;
-            
-            // Limpieza integral
-            authStorage.clear();
-            userStorage.clear();
-            
-            // Sincronización reactiva con AuthProvider y otras pestañas
-            window.dispatchEvent(new Event('logout'));
-            
-            if (window.location.pathname !== '/login') {
-                window.location.href = '/login';
+    (response) => response,
+    async (error) => {
+        const originalRequest = error.config;
+
+        // Manejo de Errores de Red (Servidor Caído / Sin Internet)
+        if (!error.response && !isLoggingOut) {
+            const { toast } = await import('sonner');
+            toast.error("Error de Red", {
+                description: "No se pudo conectar con el servidor. Verifique su conexión.",
+                duration: 5000,
+            });
+        }
+
+        if (error.response?.status === 401 && !originalRequest._retry && !isLoggingOut) {
+            if (isRefreshing) {
+                return new Promise((resolve, reject) => {
+                    failedQueue.push({ resolve, reject });
+                }).then(token => {
+                    originalRequest.headers.Authorization = `Bearer ${token}`;
+                    return api(originalRequest);
+                }).catch(err => Promise.reject(err));
+            }
+
+            originalRequest._retry = true;
+            isRefreshing = true;
+
+            const refreshToken = authStorage.getRefreshToken();
+            if (refreshToken) {
+                try {
+                    // Usamos api.post directo para evitar ciclos si importáramos authService
+                    const response = await axios.post(`${API_URL}/auth/refresh`, { 
+                        refresh_token: refreshToken 
+                    });
+                    
+                    const { access_token } = response.data;
+                    authStorage.setToken(access_token);
+                    api.defaults.headers.common.Authorization = `Bearer ${access_token}`;
+                    originalRequest.headers.Authorization = `Bearer ${access_token}`;
+                    
+                    processQueue(null, access_token);
+                    isRefreshing = false;
+                    return api(originalRequest);
+                } catch (refreshError) {
+                    processQueue(refreshError, null);
+                    isRefreshing = false;
+                    // Si el refresh falla, procedemos al logout
+                }
+            }
+
+            // Si llegamos aquí, el refresh falló o no había token
+            if (!isLoggingOut) {
+                isLoggingOut = true;
+                authStorage.clear();
+                userStorage.clear();
+                window.dispatchEvent(new Event('logout'));
+                if (window.location.pathname !== '/login') {
+                    window.location.href = '/login';
+                }
             }
         }
         return Promise.reject(error);

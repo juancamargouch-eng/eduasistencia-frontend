@@ -29,6 +29,7 @@ export const updateSchedule = async (id: number, data: Partial<ScheduleData>) =>
     return response.data;
 };
 
+
 // Devices
 export interface Device {
     id: number;
@@ -38,10 +39,21 @@ export interface Device {
     last_heartbeat: string;
     ip_address?: string;
     device_type: string;
+    unique_id?: string;
 }
 
 export const getDevices = async () => {
-    const response = await api.get('devices/');
+    const response = await api.get<Device[]>('devices/');
+    return response.data;
+};
+
+export const enrollDevice = async (data: { unique_id: string; name: string }) => {
+    const response = await api.post('devices/enroll', data);
+    return response.data as Device & { secret_token: string };
+};
+
+export const revokeDevice = async (id: number) => {
+    const response = await api.delete(`devices/${id}`);
     return response.data;
 };
 
@@ -118,12 +130,12 @@ export const getUsers = async () => {
     return response.data as AdminUser[];
 };
 
-export const createUser = async (data: any) => {
+export const createUser = async (data: any) => { // eslint-disable-line @typescript-eslint/no-explicit-any
     const response = await api.post('users/', data);
     return response.data as AdminUser;
 };
 
-export const updateUser = async (id: number, data: any) => {
+export const updateUser = async (id: number, data: any) => { // eslint-disable-line @typescript-eslint/no-explicit-any
     const response = await api.put(`users/${id}`, data);
     return response.data as AdminUser;
 };
@@ -179,5 +191,22 @@ export const createAnnouncement = async (data: {
 
 export const deleteAnnouncement = async (id: number) => {
     const response = await api.delete(`announcements/${id}`);
+    return response.data;
+};
+
+// Audit Logs
+export interface AuditLog {
+    id: number;
+    user_id: number;
+    username: string;
+    action: string;
+    description: string;
+    ip_address: string;
+    user_agent: string;
+    created_at: string;
+}
+
+export const getAuditLogs = async () => {
+    const response = await api.get<AuditLog[]>('audit/logs');
     return response.data;
 };

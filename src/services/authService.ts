@@ -9,3 +9,7 @@ export const login = async (username: string, password: string) => {
     });
     return response.data;
 };
+export const refreshToken = async (token: string) => {
+    const response = await api.post('auth/refresh', { refresh_token: token });
+    return response.data;
+};

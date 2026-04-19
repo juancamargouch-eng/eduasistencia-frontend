@@ -87,6 +87,21 @@ export const exportAttendanceReport = async (filters: ReportFilters) => {
     return response.data;
 };
 
+export const exportAttendanceReportPDF = async (filters: ReportFilters) => {
+    const cleanFilters: Record<string, string> = {};
+    Object.entries(filters).forEach(([key, value]) => {
+        if (value !== undefined && value !== null && value !== '' && value !== 'undefined') {
+            cleanFilters[key] = String(value);
+        }
+    });
+
+    const params = new URLSearchParams(cleanFilters).toString();
+    const response = await api.get(`reports/attendance/export-pdf?${params}`, {
+        responseType: 'blob',
+    });
+    return response.data;
+};
+
 // Attendance Advanced
 export const validateAttendanceLog = async (id: number) => {
     const response = await api.post(`attendance/logs/${id}/validate`);

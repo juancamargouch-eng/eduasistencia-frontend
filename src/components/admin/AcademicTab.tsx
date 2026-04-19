@@ -4,6 +4,7 @@ import MatrixSubTab from './academic/MatrixSubTab';
 import AssignmentsSubTab from './academic/AssignmentsSubTab';
 import SettingsSubTab from './academic/SettingsSubTab';
 import AcademicModal from './academic/AcademicModal';
+import ConfirmModal from '../ui/ConfirmModal';
 
 const AcademicTab: React.FC = () => {
     // Toda la lógica pesada, states y API se extrajeron a este Hook
@@ -52,8 +53,19 @@ const AcademicTab: React.FC = () => {
                 {logic.activeSubTab === 'settings' && <SettingsSubTab logic={logic} />}
             </div>
 
+
             {/* Modal Centralizado de Ediciones */}
             <AcademicModal logic={logic} />
+
+            {/* Modal de Confirmación para acciones destructivas */}
+            <ConfirmModal 
+                isOpen={logic.confirmModal.open}
+                onClose={() => logic.setConfirmModal({ ...logic.confirmModal, open: false })}
+                onConfirm={logic.confirmModal.onConfirm}
+                title={logic.confirmModal.title}
+                description={logic.confirmModal.description}
+                type={logic.confirmModal.type}
+            />
         </div>
     );
 };

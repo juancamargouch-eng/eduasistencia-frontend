@@ -27,3 +27,9 @@ dist-ssr
 *.njsproj
 *.sln
 *.sw?
+
+# Linter and temporary reports
+eslint_report.*
+eslint_summary.*
+fix-lints.cjs
+fix.cjs

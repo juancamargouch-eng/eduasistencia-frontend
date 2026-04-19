@@ -20,6 +20,9 @@ const PERMISSIONS: Record<UserRole, PermissionConfig> = {
       'justifications',
       'telegram',
       'settings',
+      'academic',
+      'grades',
+      'audit',
     ],
   },
   DIRECTOR: {
@@ -35,6 +38,9 @@ const PERMISSIONS: Record<UserRole, PermissionConfig> = {
       'justifications',
       'telegram',
       'settings',
+      'academic',
+      'grades',
+      'audit',
     ],
   },
   DOCENTE: {

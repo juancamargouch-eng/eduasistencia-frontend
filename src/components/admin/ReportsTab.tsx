@@ -11,7 +11,10 @@ interface ReportsTabProps {
 const ReportsTab: React.FC<ReportsTabProps> = ({
     grades, sections, schedules
 }) => {
-    const { reportFilters, setReportFilters, handleExportReport, loading } = useReportsTab();
+    const { 
+        reportFilters, setReportFilters, handleExportReport, 
+        handleExportReportPDF, loading 
+    } = useReportsTab();
 
     return (
         <div className="max-w-4xl mx-auto py-10 px-4">
@@ -114,20 +117,35 @@ const ReportsTab: React.FC<ReportsTabProps> = ({
                             </div>
                         </div>
 
-                        <div className="pt-6">
+                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 pt-6">
                             <button 
                                 onClick={handleExportReport} 
                                 disabled={loading}
-                                className={`w-full py-6 rounded-[2rem] font-black uppercase tracking-[0.4em] text-xs transition-all flex items-center justify-center gap-4 group mt-2 ${
+                                className={`w-full py-5 rounded-[1.5rem] font-black uppercase tracking-[0.2em] text-[10px] transition-all flex items-center justify-center gap-4 group ${
                                     loading 
-                                        ? 'bg-primary/50 text-white/70 cursor-wait' 
-                                        : 'bg-primary text-white shadow-[0_25px_50px_-12px_rgba(225,5,33,0.4)] hover:shadow-[0_30px_60px_-12px_rgba(225,5,33,0.6)] hover:-translate-y-1 active:scale-95'
+                                        ? 'bg-slate-300 text-white/70 cursor-wait' 
+                                        : 'bg-emerald-600 text-white shadow-[0_20px_40px_-12px_rgba(16,185,129,0.3)] hover:shadow-[0_25px_50px_-12px_rgba(16,185,129,0.5)] hover:-translate-y-1 active:scale-95'
                                 }`}
                             >
-                                <span className={`material-icons-outlined text-2xl ${!loading && 'group-hover:animate-bounce'}`}>
-                                    {loading ? 'hourglass_empty' : 'cloud_download'}
+                                <span className={`material-icons-outlined text-xl ${!loading && 'group-hover:animate-bounce'}`}>
+                                    {loading ? 'hourglass_empty' : 'table_view'}
                                 </span>
-                                {loading ? 'GENERANDO ARCHIVO...' : 'GENERAR AUDITORÍA EXCEL (.XLSX)'}
+                                {loading ? 'ESPERE...' : 'EXCEL (.XLSX)'}
+                            </button>
+
+                            <button 
+                                onClick={handleExportReportPDF} 
+                                disabled={loading}
+                                className={`w-full py-5 rounded-[1.5rem] font-black uppercase tracking-[0.2em] text-[10px] transition-all flex items-center justify-center gap-4 group ${
+                                    loading 
+                                        ? 'bg-primary/50 text-white/70 cursor-wait' 
+                                        : 'bg-primary text-white shadow-[0_20px_40px_-12px_rgba(225,5,33,0.3)] hover:shadow-[0_25px_50px_-12px_rgba(225,5,33,0.5)] hover:-translate-y-1 active:scale-95'
+                                }`}
+                            >
+                                <span className={`material-icons-outlined text-xl ${!loading && 'group-hover:animate-bounce'}`}>
+                                    {loading ? 'hourglass_empty' : 'picture_as_pdf'}
+                                </span>
+                                {loading ? 'ESPERE...' : 'REPORTE PDF'}
                             </button>
                         </div>
                         

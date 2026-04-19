@@ -12,7 +12,8 @@ export default {
                 "background-dark": "#101622",
             },
             fontFamily: {
-                "display": ["Inter", "sans-serif"]
+                "display": ["Lexend", "sans-serif"],
+                "sans": ["Lexend", "sans-serif"]
             },
             borderRadius: {
                 "lg": "0.5rem",

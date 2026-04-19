@@ -28,6 +28,7 @@ const AdminLayout: React.FC<AdminLayoutProps> = ({ children, activeTab }) => {
 
     useEffect(() => {
         const timer = setInterval(() => setCurrentTime(new Date()), 60000);
+        // eslint-disable-next-line react-hooks/set-state-in-effect
         loadUser();
         return () => clearInterval(timer);
     }, []);

@@ -1,10 +1,12 @@
-import React from 'react';
+import React, { Suspense, lazy } from 'react';
 import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
 import { AuthProvider } from './context/AuthProvider';
 import { useAuth } from './context/AuthContext';
-import AdminDashboard from './pages/AdminDashboard.tsx';
-import Kiosk from './pages/Kiosk.tsx';
-import Login from './pages/Login.tsx';
+
+// Lazy loading components
+const AdminDashboard = lazy(() => import('./pages/AdminDashboard.tsx'));
+const Kiosk = lazy(() => import('./pages/Kiosk.tsx'));
+const Login = lazy(() => import('./pages/Login.tsx'));
 
 const ProtectedRoute = ({ children }: { children: React.ReactNode }) => {
   const { isAuthenticated } = useAuth();
@@ -12,8 +14,20 @@ const ProtectedRoute = ({ children }: { children: React.ReactNode }) => {
   return <>{children}</>;
 };
 
+const PageLoader = () => (
+  <div className="min-h-screen bg-slate-50 dark:bg-slate-950 flex flex-col items-center justify-center gap-6">
+    <div className="relative">
+      <div className="w-16 h-16 border-4 border-primary/10 rounded-full"></div>
+      <div className="w-16 h-16 border-4 border-primary border-t-transparent rounded-full animate-spin absolute inset-0"></div>
+    </div>
+    <div className="flex flex-col items-center">
+      <p className="text-[10px] font-black uppercase tracking-[0.4em] text-slate-400 animate-pulse">Sincronizando Módulos</p>
+    </div>
+  </div>
+);
+
 import { Toaster } from 'sonner';
-import ErrorBoundary from './components/ErrorBoundary';
+import { ErrorBoundary } from './components/ui/ErrorBoundary';
 
 const API_URL = import.meta.env.VITE_API_BASE_URL;
 
@@ -43,19 +57,21 @@ function App() {
       <AuthProvider>
         <Toaster position="top-center" richColors closeButton theme="system" />
         <Router>
-          <Routes>
-            <Route path="/login" element={<Login />} />
-            <Route
-              path="/admin/*"
-              element={
-                <ProtectedRoute>
-                  <AdminDashboard />
-                </ProtectedRoute>
-              }
-            />
-            <Route path="/kiosk" element={<Kiosk />} />
-            <Route path="/" element={<Navigate to="/kiosk" />} />
-          </Routes>
+          <Suspense fallback={<PageLoader />}>
+            <Routes>
+              <Route path="/login" element={<Login />} />
+              <Route
+                path="/admin/*"
+                element={
+                  <ProtectedRoute>
+                    <AdminDashboard />
+                  </ProtectedRoute>
+                }
+              />
+              <Route path="/kiosk" element={<Kiosk />} />
+              <Route path="/" element={<Navigate to="/kiosk" />} />
+            </Routes>
+          </Suspense>
         </Router>
       </AuthProvider>
     </ErrorBoundary>

@@ -57,8 +57,25 @@ export const useUsersTab = () => {
         });
     };
 
+    const validatePassword = (pass: string) => {
+        if (!pass) return true; // Si está vacío (en edición), es válido
+        const hasUpper = /[A-Z]/.test(pass);
+        const hasNumber = /[0-9]/.test(pass);
+        const isLongEnough = pass.length >= 8;
+        return hasUpper && hasNumber && isLongEnough;
+    };
+
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
+
+        // Validar contraseña
+        if (form.password && !validatePassword(form.password)) {
+            const { toast } = await import('sonner');
+            return toast.error("Contraseña Débil", {
+                description: "Debe tener al menos 8 caracteres, una mayúscula y un número."
+            });
+        }
+
         setLoading(true);
         try {
             const payload = { ...form };
@@ -72,21 +89,31 @@ export const useUsersTab = () => {
             } else {
                 await createUser(payload);
             }
+            const { toast } = await import('sonner');
+            toast.success(editingUser ? "Usuario Actualizado" : "Usuario Creado");
             handleCancel();
             await fetchUsers();
         } catch (error) {
             console.error("Error saving user:", error);
-            alert("Error al guardar el usuario. Verifica los datos.");
+            const { toast } = await import('sonner');
+            toast.error("Error al guardar", {
+                description: "Verifique los datos e intente nuevamente."
+            });
         } finally {
             setLoading(false);
         }
     };
 
-    const handleDelete = async (id: number) => {
-        if (!window.confirm("¿Estás seguro de eliminar este usuario?")) return;
+    const [userToDelete, setUserToDelete] = useState<number | null>(null);
+
+    const handleDelete = async () => {
+        if (!userToDelete) return;
         setLoading(true);
         try {
-            await deleteUser(id);
+            await deleteUser(userToDelete);
+            setUserToDelete(null);
+            const { toast } = await import('sonner');
+            toast.success("Usuario eliminado correctamente");
             await fetchUsers();
         } catch (error) {
             console.error("Error deleting user:", error);
@@ -105,6 +132,8 @@ export const useUsersTab = () => {
         handleCancel,
         handleSubmit,
         handleDelete,
+        userToDelete,
+        setUserToDelete,
         refreshUsers: fetchUsers
     };
 };
