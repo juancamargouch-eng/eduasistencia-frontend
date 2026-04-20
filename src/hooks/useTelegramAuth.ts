@@ -61,6 +61,14 @@ export const useTelegramAuth = () => {
             toast.error("Ingrese su número de teléfono");
             return;
         }
+        
+        // Validar formato de teléfono (debe ser válido)
+        const phonePattern = /^\+?\d{7,15}$/;
+        if (!phonePattern.test(phone)) {
+            toast.error("Formato de teléfono inválido. Use formato internacional (ej: +51970980423)");
+            return;
+        }
+        
         setSaving(true);
         try {
             await updateTelegramConfig({ phone });
@@ -70,7 +78,17 @@ export const useTelegramAuth = () => {
             toast.success("Código enviado a su Telegram");
         } catch (err: unknown) {
             const error = err as AxiosError<{ detail: string }>;
-            toast.error((error as any).response?.data?.detail || "Error al enviar código");
+            const errorMsg = (error as any).response?.data?.detail || "Error al enviar código";
+            
+            // Mensajes más específicos según el error
+            if (errorMsg.includes("enmascaradas") || errorMsg.includes("corruptas")) {
+                toast.error("Las credenciales están corruptas. Por favor reingrese API ID y API Hash.");
+            } else if (errorMsg.includes("incompleta")) {
+                toast.error("Faltan credenciales. Configure primero el API ID y API Hash.");
+            } else {
+                toast.error(errorMsg);
+            }
+            throw err; // Re-lanzar para que el caller lo maneje si es necesario
         } finally {
             setSaving(false);
         }

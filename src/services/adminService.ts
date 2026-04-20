@@ -80,7 +80,23 @@ export const updateTelegramConfig = async (data: {
     phone?: string;
     is_active?: boolean;
 }) => {
-    const response = await api.post('settings/telegram', data);
+    // Filtrar valores enmascarados (con asteriscos) para evitar corrupción en BD
+    const cleanData: Record<string, unknown> = {};
+    
+    for (const [key, value] of Object.entries(data)) {
+        if (value === undefined || value === null) continue;
+        
+        const strValue = String(value);
+        // No enviar si contiene asteriscos (valor enmascarado)
+        if (strValue.includes('*')) {
+            console.warn(`Filtrando valor enmascarado para ${key}`);
+            continue;
+        }
+        
+        cleanData[key] = value;
+    }
+    
+    const response = await api.post('settings/telegram', cleanData);
     return response.data;
 };
 
