@@ -9,6 +9,7 @@ interface StudentTelegramTableProps {
     onSearchChange: (value: string) => void;
     onUpdateChatId: (student: Student, chatId: string) => void;
     onToggleNotify: (student: Student) => void;
+    onSyncAll?: () => void;
     pagination: { page: number, total: number, limit: number };
     onPageChange: (page: number) => void;
     filterGrade: string;
@@ -25,6 +26,7 @@ const StudentTelegramTable: React.FC<StudentTelegramTableProps> = ({
     onSearchChange,
     onUpdateChatId,
     onToggleNotify,
+    onSyncAll,
     pagination,
     onPageChange,
     filterGrade,
@@ -42,6 +44,15 @@ const StudentTelegramTable: React.FC<StudentTelegramTableProps> = ({
                         <h3 className="text-xl font-bold">Gestión de Notificaciones</h3>
                         <p className="text-slate-500 text-sm">Vincule a los alumnos con sus apoderados</p>
                     </div>
+                    {onSyncAll && (
+                        <button 
+                            onClick={onSyncAll}
+                            className="flex items-center gap-2 px-4 py-2 bg-primary/10 text-primary hover:bg-primary/20 rounded-xl transition-all font-bold text-sm shadow-sm border border-primary/10"
+                        >
+                            <span className="material-icons-outlined text-lg">sync</span>
+                            Vincular Pendientes
+                        </button>
+                    )}
                     <div className="w-full md:w-80">
                         <Input
                             placeholder="Buscar por nombre o DNI..."

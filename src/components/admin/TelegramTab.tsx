@@ -20,7 +20,8 @@ const TelegramTab: React.FC<TelegramTabProps> = ({ grades, sections }) => {
         filters,
         setFilters,
         handleUpdateStudent,
-        handleToggleNotify
+        handleToggleNotify,
+        handleSyncTelegram
     } = useStudents();
 
     if (loading) return (
@@ -46,6 +47,7 @@ const TelegramTab: React.FC<TelegramTabProps> = ({ grades, sections }) => {
                 }}
                 onUpdateChatId={(student, chatId) => handleUpdateStudent(student.id, { telegram_chat_id: chatId })}
                 onToggleNotify={handleToggleNotify}
+                onSyncAll={handleSyncTelegram}
                 pagination={pagination}
                 onPageChange={(page: number) => setPagination(p => ({ ...p, page }))}
                 filterGrade={filters.grade}

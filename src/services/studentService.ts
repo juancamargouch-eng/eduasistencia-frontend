@@ -102,3 +102,7 @@ export const enrollByS3Key = async (dni: string, s3Key: string, faceDescriptor: 
     });
     return response.data;
 };
+export const syncTelegramIds = async () => {
+    const response = await api.post('students/sync-telegram');
+    return response.data as { synced: number, errors: number, total: number, message: string };
+};

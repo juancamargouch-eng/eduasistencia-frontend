@@ -1,6 +1,6 @@
 import { useState, useEffect, useCallback } from 'react';
 import { toast } from 'sonner';
-import { getStudents, updateStudent, type Student } from '../services/api';
+import { getStudents, updateStudent, syncTelegramIds, type Student } from '../services/api';
 
 export const useStudents = () => {
     const [students, setStudents] = useState<Student[]>([]);
@@ -64,6 +64,24 @@ export const useStudents = () => {
         }
     };
 
+    const handleSyncTelegram = async () => {
+        setLoading(true);
+        try {
+            const result = await syncTelegramIds();
+            if (result.synced > 0) {
+                toast.success(result.message);
+                await refreshStudents();
+            } else {
+                toast.info(result.message);
+            }
+        } catch (error) {
+            console.error("Error syncing telegram IDs:", error);
+            toast.error("Error al sincronizar con Telegram");
+        } finally {
+            setLoading(false);
+        }
+    };
+
     return {
         students,
         loading,
@@ -76,6 +94,7 @@ export const useStudents = () => {
         setFilters,
         refreshStudents,
         handleUpdateStudent,
-        handleToggleNotify
+        handleToggleNotify,
+        handleSyncTelegram
     };
 };
